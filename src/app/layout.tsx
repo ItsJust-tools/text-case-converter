@@ -1,5 +1,3 @@
-import { generateSeoMetadata } from '@/lib/seo';
-
 export { generateSeoMetadata as generateMetadata } from '@/lib/seo';
 
 export default function RootLayout({

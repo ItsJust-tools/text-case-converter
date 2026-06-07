@@ -30,7 +30,13 @@ vi.mock('@itsjust/core', () => ({
   ),
   useTool: () => ({
     state: {
-      data: { input: 'Hello', mode: 'lowercase', showOutput: true, autoCopy: false, lastOutput: '' },
+      data: {
+        input: 'Hello',
+        mode: 'lowercase',
+        showOutput: true,
+        autoCopy: false,
+        lastOutput: '',
+      },
       setData: mockSetData,
       isDirty: false,
       lastSaved: 'just now',

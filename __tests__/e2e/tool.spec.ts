@@ -19,12 +19,6 @@ async function ensureToolbarInteractable(page: import('@playwright/test').Page) 
   }
 }
 
-async function typeInTextarea(page: import('@playwright/test').Page, text: string) {
-  await ensureToolbarInteractable(page);
-  const textarea = page.locator('.case-textarea');
-  await textarea.fill(text);
-}
-
 test('tool loads with correct title', async ({ page }) => {
   await page.goto('/');
   const title = await page.title();
@@ -188,9 +182,7 @@ test('import from json file works', async ({ page }) => {
     buffer: Buffer.from(fileContent),
   });
 
-  await expect
-    .poll(() => page.locator('.case-textarea').inputValue())
-    .toContain('Imported Text');
+  await expect.poll(() => page.locator('.case-textarea').inputValue()).toContain('Imported Text');
 });
 
 test('export json download triggers', async ({ page }) => {

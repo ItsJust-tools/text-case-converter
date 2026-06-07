@@ -19,22 +19,22 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 
 ## Supported Cases
 
-| Mode | Example Input | Output |
-|------|--------------|--------|
-| lowercase | Hello World | hello world |
-| UPPERCASE | Hello World | HELLO WORLD |
-| Capitalize | hello world | Hello World |
-| Title Case | the quick brown fox | The Quick Brown Fox |
-| camelCase | hello world | helloWorld |
-| PascalCase | hello world | HelloWorld |
-| snake_case | hello world | hello_world |
-| SCREAMING_SNAKE_CASE | hello world | HELLO_WORLD |
-| kebab-case | hello world | hello-world |
-| SCREAMING-KEBAB-CASE | hello world | HELLO-WORLD |
-| dot.case | hello world | hello.world |
-| lowercasing | Hello World | hello_world |
-| alternating | hello world | hElLo wOrLd |
-| inverse | Hello World | hELLO wORLD |
+| Mode                 | Example Input       | Output              |
+| -------------------- | ------------------- | ------------------- |
+| lowercase            | Hello World         | hello world         |
+| UPPERCASE            | Hello World         | HELLO WORLD         |
+| Capitalize           | hello world         | Hello World         |
+| Title Case           | the quick brown fox | The Quick Brown Fox |
+| camelCase            | hello world         | helloWorld          |
+| PascalCase           | hello world         | HelloWorld          |
+| snake_case           | hello world         | hello_world         |
+| SCREAMING_SNAKE_CASE | hello world         | HELLO_WORLD         |
+| kebab-case           | hello world         | hello-world         |
+| SCREAMING-KEBAB-CASE | hello world         | HELLO-WORLD         |
+| dot.case             | hello world         | hello.world         |
+| lowercasing          | Hello World         | hello_world         |
+| alternating          | hello world         | hElLo wOrLd         |
+| inverse              | Hello World         | hELLO wORLD         |
 
 ## Getting Started
 

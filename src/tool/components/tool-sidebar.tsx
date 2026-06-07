@@ -27,11 +27,11 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
       {/* Case mode selection */}
       <div className="sidebar-section">
         <h3>Case Mode</h3>
-        {MODE_GROUPS.map(group => (
+        {MODE_GROUPS.map((group) => (
           <div key={group.label} className="mode-group">
             <h4 className="mode-group-label">{group.label}</h4>
             <div className="mode-buttons">
-              {group.modes.map(mode => (
+              {group.modes.map((mode) => (
                 <button
                   key={mode}
                   type="button"

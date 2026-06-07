@@ -3,10 +3,20 @@ import toolConfig from './tool.config';
 import type { TextCaseState, CaseMode } from './types';
 
 const VALID_MODES: CaseMode[] = [
-  'lowercase', 'uppercase', 'capitalize', 'title-case',
-  'camelCase', 'PascalCase', 'snake_case', 'SCREAMING_SNAKE_CASE',
-  'kebab-case', 'SCREAMING-KEBAB-CASE', 'dot.case', 'lowercasing',
-  'alternating', 'inverse',
+  'lowercase',
+  'uppercase',
+  'capitalize',
+  'title-case',
+  'camelCase',
+  'PascalCase',
+  'snake_case',
+  'SCREAMING_SNAKE_CASE',
+  'kebab-case',
+  'SCREAMING-KEBAB-CASE',
+  'dot.case',
+  'lowercasing',
+  'alternating',
+  'inverse',
 ];
 
 /**
@@ -40,8 +50,7 @@ export const textCaseTool: Tool<TextCaseState> = {
     autoCopy: false,
     lastOutput: '',
   },
-  serialize: (state) =>
-    JSON.stringify({ input: state.input, mode: state.mode }, null, 2),
+  serialize: (state) => JSON.stringify({ input: state.input, mode: state.mode }, null, 2),
   deserialize: (data) => {
     if (isTextCaseState(data)) {
       return {

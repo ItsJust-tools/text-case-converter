@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { convertCase, getModeLabel, getModeDescription } from '../lib/case-converter';
-import type { TextCaseState, CaseMode } from '../types';
+import type { TextCaseState } from '../types';
 
 interface ToolCanvasProps {
   state: TextCaseState;
@@ -45,12 +45,21 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
   const outputChars = output.length;
 
   return (
-    <div ref={canvasRef} className="tool-canvas" role="application" aria-label="Text Case Converter canvas">
+    <div
+      ref={canvasRef}
+      className="tool-canvas"
+      role="application"
+      aria-label="Text Case Converter canvas"
+    >
       {/* Input area */}
       <div className="input-section">
         <div className="section-header">
-          <label htmlFor="case-input" className="section-label">Input</label>
-          <span className="char-count">{chars} character{chars !== 1 ? 's' : ''}</span>
+          <label htmlFor="case-input" className="section-label">
+            Input
+          </label>
+          <span className="char-count">
+            {chars} character{chars !== 1 ? 's' : ''}
+          </span>
         </div>
         <textarea
           id="case-input"
@@ -78,7 +87,9 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
         <div className="section-header">
           <label className="section-label">Output</label>
           <div className="output-actions">
-            <span className="char-count">{outputChars} character{outputChars !== 1 ? 's' : ''}</span>
+            <span className="char-count">
+              {outputChars} character{outputChars !== 1 ? 's' : ''}
+            </span>
             <button
               type="button"
               className="copy-btn"

@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { createMockToolState } from '@itsjust/core/testing';
 import { textCaseTool } from '@/tool/tool-definition';
-import { convertCase, getModeDescription, getModeLabel, MODE_GROUPS } from '@/tool/lib/case-converter';
+import {
+  convertCase,
+  getModeDescription,
+  getModeLabel,
+  MODE_GROUPS,
+} from '@/tool/lib/case-converter';
 import type { TextCaseState, CaseMode } from '@/tool/types';
 
 describe('TextCase converter logic', () => {
@@ -95,10 +100,20 @@ describe('TextCase converter logic', () => {
   describe('getModeDescription', () => {
     it('returns a description for each mode', () => {
       const allModes: CaseMode[] = [
-        'lowercase', 'uppercase', 'capitalize', 'title-case',
-        'camelCase', 'PascalCase', 'snake_case', 'SCREAMING_SNAKE_CASE',
-        'kebab-case', 'SCREAMING-KEBAB-CASE', 'dot.case', 'lowercasing',
-        'alternating', 'inverse',
+        'lowercase',
+        'uppercase',
+        'capitalize',
+        'title-case',
+        'camelCase',
+        'PascalCase',
+        'snake_case',
+        'SCREAMING_SNAKE_CASE',
+        'kebab-case',
+        'SCREAMING-KEBAB-CASE',
+        'dot.case',
+        'lowercasing',
+        'alternating',
+        'inverse',
       ];
       for (const mode of allModes) {
         expect(getModeDescription(mode)).toBeTruthy();
@@ -124,7 +139,7 @@ describe('TextCase converter logic', () => {
 
   describe('MODE_GROUPS', () => {
     it('contains all modes across all groups', () => {
-      const allGrouped = MODE_GROUPS.flatMap(g => g.modes);
+      const allGrouped = MODE_GROUPS.flatMap((g) => g.modes);
       expect(allGrouped).toHaveLength(14);
       expect(allGrouped).toContain('lowercase');
       expect(allGrouped).toContain('alternating');
@@ -211,6 +226,9 @@ describe('createMockToolState with TextCaseState', () => {
     const state = createMockToolState<TextCaseState>({
       input: '',
       mode: 'lowercase',
+      showOutput: true,
+      autoCopy: false,
+      lastOutput: '',
     });
     expect(state.data.input).toBe('');
     expect(state.data.mode).toBe('lowercase');
@@ -220,6 +238,9 @@ describe('createMockToolState with TextCaseState', () => {
     const state = createMockToolState<TextCaseState>({
       input: '',
       mode: 'lowercase',
+      showOutput: true,
+      autoCopy: false,
+      lastOutput: '',
     });
     state.setData((prev) => ({ ...prev, input: 'Hello World' }));
     expect(state.data.input).toBe('Hello World');
