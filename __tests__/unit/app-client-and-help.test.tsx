@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import ToolClient from '@/app/tool-client';
 import ToolClientWrapper from '@/app/tool-client-wrapper';
@@ -18,71 +18,51 @@ vi.mock('next/dynamic', () => ({
 
 const mockSetData = vi.fn();
 const mockToast = vi.fn();
-const mockHandleExport = vi.fn();
-const mockImport = vi.fn();
-const mockToolbarActions = { canUndo: true, canRedo: true, onUndo: vi.fn(), onRedo: vi.fn() };
 
 vi.mock('@itsjust/core', () => ({
   ToolShell: ({ toolbar, sidebar, canvas, statusBar }: Record<string, unknown>) => (
-    <div>
+    <div data-testid="tool-shell">
       <div>{toolbar as ReactNode}</div>
       <div>{sidebar as ReactNode}</div>
       <div>{canvas as ReactNode}</div>
       <div>{statusBar as ReactNode}</div>
     </div>
   ),
-  ImportExport: ({ onShare }: { onShare?: () => void }) => (
-    <button type="button" onClick={onShare}>
-      trigger-share
-    </button>
-  ),
   useTool: () => ({
     state: {
-      data: { text: 'Hello' },
+      data: { input: 'Hello', mode: 'lowercase', showOutput: true, autoCopy: false, lastOutput: '' },
       setData: mockSetData,
       isDirty: false,
       lastSaved: 'just now',
     },
     toast: mockToast,
     supportedFormats: ['json'],
-    handleExport: mockHandleExport,
-    importFromFile: mockImport,
+    handleExport: vi.fn(),
+    importFromFile: vi.fn(),
     isImporting: false,
-    toolbarActions: mockToolbarActions,
+    toolbarActions: { canUndo: false, canRedo: false, onUndo: vi.fn(), onRedo: vi.fn() },
   }),
 }));
 
 vi.mock('@/tool', () => ({
   toolConfig: {
-    id: 'simple-notepad',
-    name: 'Notepad',
+    id: 'text-case-converter',
+    name: 'Text Case Converter',
     version: '1.0.0',
     features: { sidebar: true },
-    theme: { brand: 'Notepad' },
+    theme: { brand: 'Text Case Converter' },
   },
   templateBaseVersion: '1.1.0',
-  notepadTool: {
-    serialize: (state: unknown) => JSON.stringify(state),
-    deserialize: () => ({ success: true, data: { text: 'From Shared Url' } }),
-  },
-  ToolCanvas: ({ text }: { text: string }) => <div>canvas:{text}</div>,
+  textCaseTool: {},
+  ToolCanvas: ({ state }: { state: { input: string } }) => <div>canvas:{state.input}</div>,
   ToolToolbar: () => <div>toolbar</div>,
-  ToolSidebar: ({ text }: { text: string }) => <div>sidebar:{text}</div>,
+  ToolSidebar: ({ state }: { state: { input: string } }) => <div>sidebar:{state.input}</div>,
 }));
 
 describe('app client and help page', () => {
   beforeEach(() => {
     mockSetData.mockReset();
     mockToast.mockReset();
-    Object.defineProperty(navigator, 'clipboard', {
-      writable: true,
-      value: { writeText: vi.fn().mockResolvedValue(undefined) },
-    });
-    Object.defineProperty(navigator, 'share', {
-      writable: true,
-      value: vi.fn().mockResolvedValue(undefined),
-    });
-    window.history.replaceState(null, '', 'http://localhost:3000/?state=e30%3D');
   });
 
   it('renders dynamic tool client wrapper', () => {
@@ -90,12 +70,14 @@ describe('app client and help page', () => {
     expect(screen.getByTestId('dynamic-tool-client')).toBeInTheDocument();
   });
 
-  it('handles share flow in tool client', async () => {
+  it('renders tool client with toolbar, sidebar, canvas, and status bar', () => {
     render(<ToolClient />);
 
+    expect(screen.getByTestId('tool-shell')).toBeInTheDocument();
     expect(screen.getByText('toolbar')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('trigger-share'));
-
-    expect(mockToast).toHaveBeenCalled();
+    expect(screen.getByText('canvas:Hello')).toBeInTheDocument();
+    expect(screen.getByText('sidebar:Hello')).toBeInTheDocument();
+    expect(screen.getByText('Template v1.1.0')).toBeInTheDocument();
+    expect(screen.getByText('5 chars')).toBeInTheDocument(); // "Hello".length = 5
   });
 });

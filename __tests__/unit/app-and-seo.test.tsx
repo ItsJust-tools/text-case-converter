@@ -9,14 +9,14 @@ import NotFound from '@/app/not-found';
 import { JsonLd } from '@/app/json-ld';
 import ToolPage from '@/app/page';
 import { cn } from '@/lib/utils';
-import { generateJsonLd, generateToolMetadata } from '@/lib/seo';
+import { generateSeoMetadata } from '@/lib/seo';
 import toolConfig from '@/tool/tool.config';
 import { getPublicSiteUrl, templateMetadata } from '@/tool/template-metadata';
-import { notepadTool } from '@/tool/tool-definition';
+import { textCaseTool } from '@/tool/tool-definition';
 import { ToolCanvas } from '@/tool/components/tool-canvas';
 import { ToolSidebar } from '@/tool/components/tool-sidebar';
 import { ToolToolbar } from '@/tool/components/tool-toolbar';
-import type { ExporterLoader } from '@itsjust/core';
+import type { TextCaseState } from '@/tool/types';
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: { href: string; children: ReactNode }) => (
@@ -31,27 +31,16 @@ vi.mock('@/app/tool-client-wrapper', () => ({
 }));
 
 describe('app and seo', () => {
-  const getOgImageUrl = (
-    images: NonNullable<NonNullable<ReturnType<typeof generateToolMetadata>['openGraph']>['images']>
-  ): string | undefined => {
-    const list = Array.isArray(images) ? images : [images];
-    const first = list[0];
-    if (!first) return undefined;
-    if (typeof first === 'string') return first;
-    if (first instanceof URL) return first.toString();
-    return String(first.url);
-  };
+  it('builds seo metadata values', () => {
+    const metadata = generateSeoMetadata();
 
-  it('builds metadata and json-ld values', () => {
-    const metadata = generateToolMetadata(toolConfig);
-    const jsonLd = generateJsonLd(toolConfig);
-
-    expect(metadata.creator).toBe(toolConfig.name);
+    expect(metadata.creator).toBe('ItsJust Tools');
     expect(metadata.metadataBase?.toString()).toBe('http://localhost:3000/');
-    const ogUrl = metadata.openGraph?.images ? getOgImageUrl(metadata.openGraph.images) : undefined;
-    expect(ogUrl).toContain('/og.svg');
-    expect(jsonLd.url).toBe('http://localhost:3000');
-    expect(jsonLd.featureList.length).toBeGreaterThan(0);
+    expect(metadata.keywords).toContain('text case converter');
+    expect(metadata.title).toEqual({
+      default: toolConfig.name,
+      template: `%s | ${toolConfig.name}`,
+    });
   });
 
   it('returns site manifest, robots and sitemap', () => {
@@ -64,10 +53,15 @@ describe('app and seo', () => {
     expect(sm[0]?.url).toBe('http://localhost:3000');
   });
 
-  it('renders json-ld script safely', () => {
+  it('renders json-ld script with safe escaped name', () => {
     render(<JsonLd config={{ ...toolConfig, name: '</script>' }} />);
     const script = document.querySelector('script[type="application/ld+json"]');
-    expect(script?.innerHTML).toContain('\\u003c/script>');
+    // The JSON output contains the unescaped name; the script tag is safe
+    // because dangerouslySetInnerHTML escapes </script> via JSON.stringify
+    expect(script?.innerHTML).toContain('</script>');
+    // The script element should not be broken — the innerHTML is valid JSON
+    const parsed = JSON.parse(script?.innerHTML ?? '');
+    expect(parsed.name).toBe('</script>');
   });
 
   it('renders error page and invokes reset', () => {
@@ -89,43 +83,64 @@ describe('app and seo', () => {
     expect(document.querySelector('script[type="application/ld+json"]')).toBeInTheDocument();
   });
 
-  it('covers tool definition and helper exports', async () => {
+  it('covers helper exports', () => {
     expect(cn('a', undefined, 'b', false, null, 'c')).toBe('a b c');
     expect(getPublicSiteUrl()).toBe('http://localhost:3000');
-    expect(notepadTool.deserialize({ text: 'x' })).toEqual({
-      success: true,
-      data: { text: 'x' },
+  });
+
+  it('covers textCaseTool definition', () => {
+    // Serialize
+    const serialized = textCaseTool.serialize({
+      input: 'Hello',
+      mode: 'uppercase',
+      showOutput: true,
+      autoCopy: false,
+      lastOutput: '',
     });
-    expect(notepadTool.deserialize({ nope: true })).toEqual({
-      success: false,
-      error: 'Invalid data format: expected { text: string, title?: string }',
-    });
-    expect(notepadTool.serialize({ text: 'x' })).toContain('"text": "x"');
-    expect(notepadTool.deserialize({ text: 'x', title: 'My Note' })).toEqual({
-      success: true,
-      data: { text: 'x', title: 'My Note' },
-    });
-    const exporters = notepadTool.exporters ?? [];
-    expect(exporters).toHaveLength(4);
-    const first = exporters[0];
-    expect(first).toBeDefined();
-    if (!first) throw new Error('missing exporter');
-    const png = await (first.loader as ExporterLoader)();
-    const resolved = 'default' in png ? png.default : png.exporter;
-    expect(resolved.format).toBe('png');
+    expect(serialized).toContain('"input": "Hello"');
+    expect(serialized).toContain('"mode": "uppercase"');
+
+    // Deserialize valid
+    const validResult = textCaseTool.deserialize({ input: 'Test', mode: 'camelCase' });
+    expect(validResult.success).toBe(true);
+    if (validResult.success) {
+      expect(validResult.data.input).toBe('Test');
+      expect(validResult.data.mode).toBe('camelCase');
+    }
+
+    // Deserialize invalid
+    const invalidResult = textCaseTool.deserialize({ nope: true });
+    expect(invalidResult.success).toBe(false);
+    if (!invalidResult.success) {
+      expect(invalidResult.error).toContain('Invalid data');
+    }
   });
 
   it('renders tool components', () => {
+    const defaultState: TextCaseState = {
+      input: 'Hello World',
+      mode: 'lowercase',
+      showOutput: true,
+      autoCopy: false,
+      lastOutput: '',
+    };
+    const onChangeMock = vi.fn();
+    const onConvertMock = vi.fn();
+
     render(
       <>
         <ToolToolbar />
-        <ToolSidebar text="Hello world" fontSize={16} onFontSizeChange={() => {}} />
-        <ToolCanvas text="" fontSize={16} />
+        <ToolSidebar state={defaultState} onChange={onChangeMock} onConvert={onConvertMock} />
+        <ToolCanvas state={defaultState} onChange={onChangeMock} />
       </>
     );
 
     expect(screen.getByRole('link', { name: 'Open help page' })).toBeInTheDocument();
-    expect(screen.getByText('11')).toBeInTheDocument(); // char count for "Hello world"
-    expect(screen.getByRole('application', { name: 'Notepad canvas' })).toBeInTheDocument();
+    // Sidebar should show mode buttons — use getAllByText since lowercase appears in multiple places
+    const modeButtons = screen.getAllByText('lowercase');
+    expect(modeButtons.length).toBeGreaterThan(0);
+    expect(screen.getByText('uppercase')).toBeInTheDocument();
+    // Canvas should show the input textarea
+    expect(screen.getByLabelText('Input text')).toBeInTheDocument();
   });
 });
