@@ -1,14 +1,14 @@
 {
-  "name": "template",
-  "version": "1.4.0",
+  "name": "text-case-converter",
+  "version": "1.0.0",
   "private": true,
-  "description": "A Next.js template for building specialized single-purpose web tools. Each tool does ONE thing well.",
+  "description": "A text case converter tool — convert between lowercase, UPPERCASE, Title Case, camelCase, snake_case, kebab-case, PascalCase, and more. All client-side, privacy-first.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ItsJust-tools/template.git"
+    "url": "git+https://github.com/ItsJust-tools/text-case-converter.git"
   },
-  "homepage": "https://github.com/ItsJust-tools/template",
+  "homepage": "https://github.com/ItsJust-tools/text-case-converter",
   "workspaces": [
     "packages/*"
   ],

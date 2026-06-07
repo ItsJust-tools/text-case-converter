@@ -1,10 +1,32 @@
-import { generateJsonLd } from '@/lib/seo';
 import type { ToolConfig } from '@itsjust/core';
+import { getPublicSiteUrl } from '@/tool';
 
-export function JsonLd({ config }: { config: ToolConfig }) {
-  const jsonLd = generateJsonLd(config);
-  // Escape </script> sequences by replacing `<` with `<` so the JSON
-  // string cannot break out of the `<script>` tag even if ToolConfig contains HTML.
-  const safeJson = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJson }} />;
+interface JsonLdProps {
+  config: ToolConfig;
+}
+
+export function JsonLd({ config }: JsonLdProps) {
+  const siteUrl = getPublicSiteUrl();
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: config.name,
+    description: config.description,
+    url: siteUrl,
+    applicationCategory: 'UtilityApplication',
+    operatingSystem: 'Any',
+    browserRequirements: 'Requires JavaScript',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
 }

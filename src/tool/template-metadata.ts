@@ -6,7 +6,7 @@ export const templateMetadata = {
   htmlLang: 'en',
   locale: 'en_US',
   appName: toolConfig.name,
-  shortName: toolConfig.name,
+  shortName: 'Case Converter',
   appDescription: toolConfig.description,
   iconPath: '/icon.svg',
 };

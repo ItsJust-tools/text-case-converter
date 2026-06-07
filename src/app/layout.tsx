@@ -1,30 +1,6 @@
-import type { Metadata, Viewport } from 'next';
-import { Geist } from 'next/font/google';
-import { ThemeProvider, ThemeScript, ToastProvider } from '@itsjust/core';
-import { generateToolMetadata } from '@/lib/seo';
-import toolConfig from '@/tool/tool.config';
-import { templateMetadata } from '@/tool/template-metadata';
-import './globals.css';
+import { generateSeoMetadata } from '@/lib/seo';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-export const metadata: Metadata = {
-  ...generateToolMetadata(toolConfig),
-};
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 5,
-  viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0c0e14' },
-  ],
-};
+export { generateSeoMetadata as generateMetadata } from '@/lib/seo';
 
 export default function RootLayout({
   children,
@@ -32,21 +8,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang={templateMetadata.htmlLang}
-      className={`${geistSans.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <ThemeScript toolTheme={toolConfig.theme} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  var contrast = localStorage.getItem('contrast');
+                  if (theme) document.documentElement.setAttribute('data-theme', theme);
+                  if (contrast) document.documentElement.setAttribute('data-contrast', contrast);
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body>
         <a href="#main-content" className="skip-nav">
-          Skip to content
+          Skip to main content
         </a>
-        <ThemeProvider toolTheme={toolConfig.theme}>
-          <ToastProvider>{children}</ToastProvider>
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );

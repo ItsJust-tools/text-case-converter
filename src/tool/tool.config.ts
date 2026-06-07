@@ -1,34 +1,41 @@
 import type { ToolConfig } from '@itsjust/core';
 import packageJson from '../../package.json';
 
+/** The version of the template package this tool was built from. */
 export const templateBaseVersion = packageJson.version;
 
+/**
+ * Configuration for the Text Case Converter tool.
+ */
 const toolConfig = {
-  id: 'simple-notepad',
-  name: 'Notepad',
-  description: 'A clean, distraction-free notepad. Write, edit, and export your notes instantly.',
-  version: '1.3.0',
-  exportFormats: ['json', 'png', 'jpeg', 'webp', 'pdf'],
+  id: 'text-case-converter',
+  name: 'Text Case Converter',
+  description: 'Convert text between different cases — lowercase, UPPERCASE, Title Case, camelCase, snake_case, kebab-case, PascalCase, and more.',
+  version: '1.0.0',
+  exportFormats: ['json'],
   features: {
-    export: true,
+    export: false,
     autoSave: true,
-    undoRedo: true,
+    undoRedo: false,
     sidebar: true,
     statusBar: true,
     darkMode: true,
   },
   theme: {
-    accent: '#10b981',
-    accentHover: '#059669',
-    accentSubtle: 'rgba(16, 185, 129, 0.08)',
-    brand: 'Notepad',
-    icon: '\u{1F4DD}',
+    accent: '#8b5cf6',
+    accentHover: '#7c3aed',
+    accentSubtle: 'rgba(139, 92, 246, 0.08)',
+    brand: 'Text Case Converter',
+    icon: '\u{1F520}', /* 🔠 */
   },
   shortcuts: [
     {
-      title: 'Notepad',
+      title: 'Text Case Converter',
       shortcuts: [
-        { keys: 'Ctrl+Shift+E', label: 'Export All', description: 'exports all formats at once' },
+        { keys: 'Ctrl+Enter', label: 'Convert', description: 'apply the selected case transformation' },
+        { keys: 'Ctrl+Shift+C', label: 'Copy Output', description: 'copy transformed text to clipboard' },
+        { keys: 'Ctrl+Shift+R', label: 'Reset', description: 'clear input and reset state' },
+        { keys: 'Ctrl+Shift+T', label: 'Toggle Case', description: 'cycle through case modes' },
       ],
     },
   ],

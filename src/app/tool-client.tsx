@@ -1,154 +1,72 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ToolShell, useTool, ImportExport } from '@itsjust/core';
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import {
   toolConfig,
   templateBaseVersion,
-  notepadTool,
+  textCaseTool,
   ToolCanvas,
   ToolToolbar,
   ToolSidebar,
 } from '@/tool';
-
-const DEFAULT_FONT_SIZE = 16;
-const MIN_FONT_SIZE = 8;
-const MAX_FONT_SIZE = 72;
+import { ToolShell, useTool } from '@itsjust/core';
+import { convertCase } from '@/tool/lib/case-converter';
+import type { TextCaseState } from '@/tool/types';
 
 export default function ToolClient() {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const tool = useTool(notepadTool, canvasRef);
+  const tool = useTool(textCaseTool, canvasRef);
   const setToolData = tool.state.setData;
   const showToast = tool.toast;
-  const [isSharing, setIsSharing] = useState(false);
-  const hasLoadedSharedState = useRef(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(
     () => typeof window !== 'undefined' && window.innerWidth > 768 && toolConfig.features.sidebar
   );
-  const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
 
-  const title = tool.state.data.title?.trim() || toolConfig.name;
-  const [isEditingBrand, setIsEditingBrand] = useState(false);
-  const [editValue, setEditValue] = useState(title);
+  const title = toolConfig.name;
 
   useEffect(() => {
     document.title = title;
   }, [title]);
 
-  const handleTextChange = useCallback(
-    (text: string) => {
-      setToolData((prev) => ({ ...prev, text }));
+  const handleStateChange = useCallback(
+    (patch: Partial<TextCaseState>) => {
+      setToolData((prev) => ({ ...prev, ...patch }));
     },
     [setToolData]
   );
 
-  const handleFontSizeChange = useCallback((delta: number) => {
-    setFontSize((prev) => Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, prev + delta)));
-  }, []);
-
-  useEffect(() => {
-    if (hasLoadedSharedState.current) return;
-    hasLoadedSharedState.current = true;
-    const params = new URLSearchParams(window.location.search);
-    const encodedState = params.get('state');
-    if (!encodedState) return;
-    try {
-      const serialized = decompressFromEncodedURIComponent(encodedState);
-      if (!serialized) throw new Error('Invalid shared URL');
-      const parsed: unknown = JSON.parse(serialized);
-      const deserialized = notepadTool.deserialize(parsed);
-      if (!deserialized.success) throw new Error(deserialized.error);
-      setToolData(deserialized.data);
-      showToast('Loaded state from shared URL', 'success');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to load shared URL';
-      showToast(message, 'error');
+  const handleConvert = useCallback(() => {
+    const { input, mode } = tool.state.data;
+    if (!input.trim()) {
+      showToast('No text to convert', 'error');
+      return;
     }
-  }, [setToolData, showToast]);
+    const output = convertCase(input, mode);
+    setToolData((prev) => ({ ...prev, lastOutput: output }));
+    showToast(`Converted to ${mode}`, 'success');
+  }, [tool.state.data, setToolData, showToast]);
 
-  const handleShare = useCallback(async () => {
-    setIsSharing(true);
-    try {
-      const serialized = notepadTool.serialize(tool.state.data);
-      const encodedState = compressToEncodedURIComponent(serialized);
-      if (!encodedState) throw new Error('Failed to encode state for URL');
-      const url = new URL(window.location.href);
-      url.searchParams.set('state', encodedState);
-      url.searchParams.set('tool', toolConfig.id);
-      window.history.replaceState(null, '', url.toString());
-
-      const shareUrl = url.toString();
-      if (navigator.share) {
-        try {
-          await navigator.share({ title, url: shareUrl });
-          showToast('Shared URL ready', 'success');
-          return;
-        } catch (error) {
-          if (error instanceof Error && error.name === 'AbortError') return;
-        }
-      }
-      await navigator.clipboard.writeText(shareUrl);
-      showToast('Share URL copied to clipboard', 'success');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create share URL';
-      showToast(message, 'error');
-    } finally {
-      setIsSharing(false);
-    }
-  }, [showToast, tool.state.data, title]);
-
-  const toolbarActions = useMemo(
-    () => ({
-      ...tool.toolbarActions,
-      onBrandClick: () => {
-        setEditValue(title);
-        setIsEditingBrand(true);
-      },
-      isBrandEditing: isEditingBrand,
-      brandValue: isEditingBrand ? editValue : title,
-      onBrandChange: (value: string) => setEditValue(value),
-      onBrandCommit: () => {
-        const trimmed = editValue.trim();
-        setToolData((prev) => ({ ...prev, title: trimmed || undefined }));
-        setIsEditingBrand(false);
-      },
-      onBrandCancel: () => {
-        setEditValue(title);
-        setIsEditingBrand(false);
-      },
-    }),
-    [tool.toolbarActions, isEditingBrand, editValue, title, setToolData]
-  );
+  const toolbarActions = useMemo(() => tool.toolbarActions, [tool.toolbarActions]);
 
   const toolbarContent = (
     <>
       <ToolToolbar />
-      <ImportExport
-        formats={tool.supportedFormats}
-        onExport={tool.handleExport}
-        onImport={tool.importFromFile}
-        isImporting={tool.isImporting}
-        onShare={handleShare}
-        isSharing={isSharing}
-      />
     </>
   );
 
   const sidebarContent = (
     <ToolSidebar
-      text={tool.state.data.text}
-      fontSize={fontSize}
-      onFontSizeChange={handleFontSizeChange}
+      state={tool.state.data}
+      onChange={handleStateChange}
+      onConvert={handleConvert}
     />
   );
 
   const canvasContent = (
     <ToolCanvas
+      state={tool.state.data}
       canvasRef={canvasRef}
-      text={tool.state.data.text}
-      fontSize={fontSize}
-      onChange={handleTextChange}
+      onChange={handleStateChange}
     />
   );
 
@@ -168,7 +86,12 @@ export default function ToolClient() {
           'Ready'
         )}
       </span>
-      <span className="status-slot status-slot-font-size">{fontSize}px</span>
+      <span className="status-slot status-slot-input-length">
+        {tool.state.data.input.length} chars
+      </span>
+      <span className="status-slot status-slot-mode">
+        {tool.state.data.mode}
+      </span>
       <span className="status-slot status-slot-tool-version">Tool v{toolConfig.version}</span>
       <span className="status-slot status-slot-template-version">
         Template v{templateBaseVersion}

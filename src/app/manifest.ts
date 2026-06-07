@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { templateMetadata } from '@/tool/template-metadata';
+import { templateMetadata } from '@/tool';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -8,14 +8,11 @@ export default function manifest(): MetadataRoute.Manifest {
     description: templateMetadata.appDescription,
     start_url: '/',
     display: 'standalone',
-    background_color: '#111827',
-    theme_color: '#111827',
+    background_color: '#f1f5f9',
+    theme_color: '#8b5cf6',
     icons: [
-      {
-        src: templateMetadata.iconPath,
-        sizes: 'any',
-        type: 'image/svg+xml',
-      },
+      { src: '/icon-192.svg', sizes: '192x192', type: 'image/svg+xml' },
+      { src: '/icon-512.svg', sizes: '512x512', type: 'image/svg+xml' },
     ],
   };
 }
