@@ -8,7 +8,7 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 
 ## Features
 
-- **16 case modes:** lowercase, UPPERCASE, capitalize, Title Case, Sentence case, camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, Train-Case, SCREAMING-KEBAB-CASE, dot.case, lowercasing with underscores, alternating case, and inverse case
+- **16 case modes:** lowercase, UPPERCASE, capitalize, Title Case, Sentence case, camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, Train-Case, SCREAMING-KEBAB-CASE, dot.case, flatcase, alternating case, and inverse case
 - **Real-time preview:** output updates automatically as you type
 - **One-click copy:** click the output or Copy button to grab transformed text
 - **Word count, character count, and line count** — live statistics in the sidebar
@@ -39,7 +39,7 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 | Train-Case           | hello world         | Hello-World         |
 | SCREAMING-KEBAB-CASE | hello world         | HELLO-WORLD         |
 | dot.case             | hello world         | hello.world         |
-| lowercasing          | Hello World         | hello_world         |
+| flatcase             | Hello World         | helloworld          |
 | alternating          | hello world         | hElLo wOrLd         |
 | inverse              | Hello World         | hELLO wORLD         |
 

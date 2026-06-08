@@ -17,7 +17,7 @@ export const ALL_VALID_MODES: readonly CaseMode[] = [
   'train-case',
   'SCREAMING-KEBAB-CASE',
   'dot.case',
-  'lowercasing',
+  'flatcase',
   'alternating',
   'inverse',
 ];

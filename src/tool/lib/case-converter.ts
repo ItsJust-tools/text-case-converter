@@ -37,10 +37,8 @@ export function convertCase(input: string, mode: CaseMode): string {
       return toScreamingKebabCase(input);
     case 'dot.case':
       return toDotCase(input);
-    case 'lowercasing':
-      return splitWords(input)
-        .map((w) => w.toLowerCase())
-        .join('_');
+    case 'flatcase':
+      return toFlatCase(input);
     case 'alternating':
       return toAlternatingCase(input);
     case 'inverse':
@@ -264,6 +262,19 @@ function toDotCase(input: string): string {
 }
 
 /**
+ * Converts text to flatcase: all words lowercase, no separators.
+ * Useful for URLs, domain names, and compact identifiers.
+ *
+ * @param input - The text to convert.
+ * @returns The flatcased string.
+ */
+function toFlatCase(input: string): string {
+  return splitWords(input)
+    .map((w) => w.toLowerCase())
+    .join('');
+}
+
+/**
  * Converts text to alternating case (aLtErNaTiNg): even-indexed characters lowercase,
  * odd-indexed characters uppercase. Non-alphabetic characters are preserved as-is.
  *
@@ -316,7 +327,7 @@ export function getModeDescription(mode: CaseMode): string {
     'train-case': 'Capitalized-Words-Separated-By-Hyphens (Train-Case)',
     'SCREAMING-KEBAB-CASE': 'UPPERCASE-WORDS-SEPARATED-BY-HYPHENS',
     'dot.case': 'lowercase.words.separated.by.dots',
-    lowercasing: 'lowercase_with_underscores',
+    flatcase: 'all lowercase, no separators (flatcase)',
     alternating: 'aLtErNaTiNg CaSe',
     inverse: 'Invert the case of each letter',
   };
@@ -344,7 +355,7 @@ export function getModeLabel(mode: CaseMode): string {
     'train-case': 'Train',
     'SCREAMING-KEBAB-CASE': 'KEBAB',
     'dot.case': 'dot',
-    lowercasing: 'l_',
+    flatcase: 'flat',
     alternating: 'AlTeRnAtE',
     inverse: 'iNVERSE',
   };
@@ -374,6 +385,6 @@ export const MODE_GROUPS: { label: string; modes: CaseMode[] }[] = [
   },
   {
     label: 'Special',
-    modes: ['dot.case', 'lowercasing', 'alternating', 'inverse'],
+    modes: ['dot.case', 'flatcase', 'alternating', 'inverse'],
   },
 ];

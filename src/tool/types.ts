@@ -15,7 +15,7 @@ export type CaseMode =
   | 'train-case'
   | 'SCREAMING-KEBAB-CASE'
   | 'dot.case'
-  | 'lowercasing'
+  | 'flatcase'
   | 'alternating'
   | 'inverse';
 

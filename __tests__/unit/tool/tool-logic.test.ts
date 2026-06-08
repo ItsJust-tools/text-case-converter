@@ -102,10 +102,12 @@ describe('TextCase converter logic', () => {
       expect(convertCase('helloWorld', 'dot.case')).toBe('hello.world');
     });
 
-    it('converts to lowercasing', () => {
-      expect(convertCase('Hello World', 'lowercasing')).toBe('hello_world');
-      expect(convertCase('hello-world', 'lowercasing')).toBe('hello_world');
-      expect(convertCase('helloWorld', 'lowercasing')).toBe('hello_world');
+    it('converts to flatcase', () => {
+      expect(convertCase('Hello World', 'flatcase')).toBe('helloworld');
+      expect(convertCase('hello-world', 'flatcase')).toBe('helloworld');
+      expect(convertCase('helloWorld', 'flatcase')).toBe('helloworld');
+      expect(convertCase('hello_world', 'flatcase')).toBe('helloworld');
+      expect(convertCase('HELLO WORLD', 'flatcase')).toBe('helloworld');
     });
 
     it('converts to alternating case', () => {
@@ -176,7 +178,7 @@ describe('TextCase converter logic', () => {
         'train-case',
         'SCREAMING-KEBAB-CASE',
         'dot.case',
-        'lowercasing',
+        'flatcase',
         'alternating',
         'inverse',
       ];
@@ -210,6 +212,7 @@ describe('TextCase converter logic', () => {
       expect(allGrouped).toHaveLength(16);
       expect(allGrouped).toContain('lowercase');
       expect(allGrouped).toContain('alternating');
+      expect(allGrouped).toContain('flatcase');
       expect(allGrouped).toContain('SCREAMING-KEBAB-CASE');
       expect(allGrouped).toContain('sentence-case');
       expect(allGrouped).toContain('train-case');

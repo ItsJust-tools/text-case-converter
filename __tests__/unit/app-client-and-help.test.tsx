@@ -72,7 +72,7 @@ vi.mock('@/tool', () => ({
     'train-case',
     'SCREAMING-KEBAB-CASE',
     'dot.case',
-    'lowercasing',
+    'flatcase',
     'alternating',
     'inverse',
   ],
