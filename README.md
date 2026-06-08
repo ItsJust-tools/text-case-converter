@@ -6,7 +6,7 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 
 ## Features
 
-- **14 case modes:** lowercase, UPPERCASE, capitalize, Title Case, camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, SCREAMING-KEBAB-CASE, dot.case, lowercasing with underscores, alternating case, and inverse case
+- **16 case modes:** lowercase, UPPERCASE, capitalize, Title Case, Sentence case, camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, Train-Case, SCREAMING-KEBAB-CASE, dot.case, lowercasing with underscores, alternating case, and inverse case
 - **Real-time preview:** output updates as you type
 - **One-click copy:** click the output or Copy button to grab transformed text
 - **Dark mode:** automatic and manual theme switching
@@ -25,11 +25,13 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 | UPPERCASE            | Hello World         | HELLO WORLD         |
 | Capitalize           | hello world         | Hello World         |
 | Title Case           | the quick brown fox | The Quick Brown Fox |
+| Sentence Case        | hello world         | Hello world         |
 | camelCase            | hello world         | helloWorld          |
 | PascalCase           | hello world         | HelloWorld          |
 | snake_case           | hello world         | hello_world         |
 | SCREAMING_SNAKE_CASE | hello world         | HELLO_WORLD         |
 | kebab-case           | hello world         | hello-world         |
+| Train-Case           | hello world         | Hello-World         |
 | SCREAMING-KEBAB-CASE | hello world         | HELLO-WORLD         |
 | dot.case             | hello world         | hello.world         |
 | lowercasing          | Hello World         | hello_world         |

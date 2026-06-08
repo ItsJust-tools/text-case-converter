@@ -18,6 +18,8 @@ export function convertCase(input: string, mode: CaseMode): string {
         .join('');
     case 'title-case':
       return titleCase(input);
+    case 'sentence-case':
+      return toSentenceCase(input);
     case 'camelCase':
       return toCamelCase(input);
     case 'PascalCase':
@@ -28,12 +30,16 @@ export function convertCase(input: string, mode: CaseMode): string {
       return toScreamingSnakeCase(input);
     case 'kebab-case':
       return toKebabCase(input);
+    case 'train-case':
+      return toTrainCase(input);
     case 'SCREAMING-KEBAB-CASE':
       return toScreamingKebabCase(input);
     case 'dot.case':
       return toDotCase(input);
     case 'lowercasing':
-      return input.toLowerCase().replace(/ /g, '_');
+      return splitWords(input)
+        .map((w) => w.toLowerCase())
+        .join('_');
     case 'alternating':
       return toAlternatingCase(input);
     case 'inverse':
@@ -88,6 +94,20 @@ function titleCase(input: string): string {
     .join('');
 }
 
+/**
+ * Converts text to sentence case: first word capitalized, rest lowercase.
+ * Preserves sentence boundaries (period, exclamation, question mark).
+ */
+function toSentenceCase(input: string): string {
+  // First lowercase everything
+  let result = input.toLowerCase();
+  // Capitalize first letter of the string
+  result = result.replace(/^\w/, (first) => first.toUpperCase());
+  // Capitalize first letter after sentence-ending punctuation
+  result = result.replace(/([.!?]\s*)(\w)/g, (_, punctuation, letter) => punctuation + letter.toUpperCase());
+  return result;
+}
+
 /** Splits input into words by spaces, underscores, hyphens, or camelCase boundaries. */
 function splitWords(input: string): string[] {
   // First normalize separators to spaces
@@ -134,6 +154,12 @@ function toKebabCase(input: string): string {
     .join('-');
 }
 
+function toTrainCase(input: string): string {
+  return splitWords(input)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join('-');
+}
+
 function toScreamingKebabCase(input: string): string {
   return splitWords(input)
     .map((w) => w.toUpperCase())
@@ -173,14 +199,16 @@ export function getModeDescription(mode: CaseMode): string {
     uppercase: 'Convert everything to UPPERCASE',
     capitalize: 'Capitalize the first letter of each word',
     'title-case': 'Title Case — capitalize major words, keep minor words lowercase',
+    'sentence-case': 'Sentence case — capitalize first word of each sentence',
     camelCase: 'lowercase-first camelCase',
     PascalCase: 'UpperCamelCase (PascalCase)',
     snake_case: 'lowercase_words_separated_by_underscores',
     SCREAMING_SNAKE_CASE: 'UPPERCASE_WORDS_SEPARATED_BY_UNDERSCORES',
     'kebab-case': 'lowercase-words-separated-by-hyphens',
+    'train-case': 'Capitalized-Words-Separated-By-Hyphens (Train-Case)',
     'SCREAMING-KEBAB-CASE': 'UPPERCASE-WORDS-SEPARATED-BY-HYPHENS',
     'dot.case': 'lowercase.words.separated.by.dots',
-    lowercasing: 'lowercase_with_underscores (direct from spaces)',
+    lowercasing: 'lowercase_with_underscores',
     alternating: 'aLtErNaTiNg CaSe',
     inverse: 'Invert the case of each letter',
   };
@@ -196,11 +224,13 @@ export function getModeLabel(mode: CaseMode): string {
     uppercase: 'ABC',
     capitalize: 'Abc',
     'title-case': 'Title',
+    'sentence-case': 'Sent',
     camelCase: 'camel',
     PascalCase: 'Pascal',
     snake_case: 'snake',
     SCREAMING_SNAKE_CASE: 'SCREAM',
     'kebab-case': 'kebab',
+    'train-case': 'Train',
     'SCREAMING-KEBAB-CASE': 'KEBAB',
     'dot.case': 'dot',
     lowercasing: 'l_',
@@ -216,7 +246,7 @@ export function getModeLabel(mode: CaseMode): string {
 export const MODE_GROUPS: { label: string; modes: CaseMode[] }[] = [
   {
     label: 'Basic',
-    modes: ['lowercase', 'uppercase', 'capitalize', 'title-case'],
+    modes: ['lowercase', 'uppercase', 'capitalize', 'title-case', 'sentence-case'],
   },
   {
     label: 'Code',
@@ -226,6 +256,7 @@ export const MODE_GROUPS: { label: string; modes: CaseMode[] }[] = [
       'snake_case',
       'SCREAMING_SNAKE_CASE',
       'kebab-case',
+      'train-case',
       'SCREAMING-KEBAB-CASE',
     ],
   },

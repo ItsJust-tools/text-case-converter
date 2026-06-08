@@ -36,6 +36,14 @@ describe('TextCase converter logic', () => {
       expect(convertCase('a tale of two cities', 'title-case')).toBe('A Tale of Two Cities');
     });
 
+    it('converts to Sentence Case', () => {
+      expect(convertCase('hello world', 'sentence-case')).toBe('Hello world');
+      expect(convertCase('hello. world', 'sentence-case')).toBe('Hello. World');
+      expect(convertCase('first sentence. second sentence! third?', 'sentence-case')).toBe(
+        'First sentence. Second sentence! Third?'
+      );
+    });
+
     it('converts to camelCase', () => {
       expect(convertCase('hello world', 'camelCase')).toBe('helloWorld');
       expect(convertCase('hello-world', 'camelCase')).toBe('helloWorld');
@@ -63,6 +71,12 @@ describe('TextCase converter logic', () => {
       expect(convertCase('helloWorld', 'kebab-case')).toBe('hello-world');
     });
 
+    it('converts to Train-Case', () => {
+      expect(convertCase('hello world', 'train-case')).toBe('Hello-World');
+      expect(convertCase('helloWorld', 'train-case')).toBe('Hello-World');
+      expect(convertCase('hello_world', 'train-case')).toBe('Hello-World');
+    });
+
     it('converts to SCREAMING-KEBAB-CASE', () => {
       expect(convertCase('hello world', 'SCREAMING-KEBAB-CASE')).toBe('HELLO-WORLD');
     });
@@ -73,6 +87,8 @@ describe('TextCase converter logic', () => {
 
     it('converts to lowercasing', () => {
       expect(convertCase('Hello World', 'lowercasing')).toBe('hello_world');
+      expect(convertCase('hello-world', 'lowercasing')).toBe('hello_world');
+      expect(convertCase('helloWorld', 'lowercasing')).toBe('hello_world');
     });
 
     it('converts to alternating case', () => {
@@ -104,11 +120,13 @@ describe('TextCase converter logic', () => {
         'uppercase',
         'capitalize',
         'title-case',
+        'sentence-case',
         'camelCase',
         'PascalCase',
         'snake_case',
         'SCREAMING_SNAKE_CASE',
         'kebab-case',
+        'train-case',
         'SCREAMING-KEBAB-CASE',
         'dot.case',
         'lowercasing',
@@ -140,10 +158,12 @@ describe('TextCase converter logic', () => {
   describe('MODE_GROUPS', () => {
     it('contains all modes across all groups', () => {
       const allGrouped = MODE_GROUPS.flatMap((g) => g.modes);
-      expect(allGrouped).toHaveLength(14);
+      expect(allGrouped).toHaveLength(16);
       expect(allGrouped).toContain('lowercase');
       expect(allGrouped).toContain('alternating');
       expect(allGrouped).toContain('SCREAMING-KEBAB-CASE');
+      expect(allGrouped).toContain('sentence-case');
+      expect(allGrouped).toContain('train-case');
     });
   });
 });
