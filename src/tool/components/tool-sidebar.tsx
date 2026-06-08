@@ -19,7 +19,7 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
   );
 
   const handleClear = useCallback(() => {
-    onChange({ input: '', lastOutput: '' });
+    onChange({ input: '', mode: 'lowercase' as const, lastOutput: '' });
   }, [onChange]);
 
   const wordCount = useMemo(

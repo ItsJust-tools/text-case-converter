@@ -8,30 +8,36 @@ import {
   ToolCanvas,
   ToolToolbar,
   ToolSidebar,
+  ALL_VALID_MODES,
 } from '@/tool';
 import { ToolShell, useTool } from '@itsjust/core';
 import { convertCase } from '@/tool/lib/case-converter';
-import type { TextCaseState, CaseMode } from '@/tool/types';
+import type { TextCaseState } from '@/tool/types';
 
-const ALL_MODES: CaseMode[] = [
-  'lowercase',
-  'uppercase',
-  'capitalize',
-  'title-case',
-  'sentence-case',
-  'camelCase',
-  'PascalCase',
-  'snake_case',
-  'SCREAMING_SNAKE_CASE',
-  'kebab-case',
-  'train-case',
-  'SCREAMING-KEBAB-CASE',
-  'dot.case',
-  'lowercasing',
-  'alternating',
-  'inverse',
-];
+/**
+ * Determines the modifier key based on the user's platform.
+ */
+function isMac(): boolean {
+  return typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+}
 
+const MOD_KEY = isMac() ? 'metaKey' : 'ctrlKey';
+
+/** Reuse the canonical list from the tool definition to avoid duplication. */
+const ALL_MODES = ALL_VALID_MODES;
+
+/**
+ * Controls whether a keyboard event matches the current platform's modifier key
+ * and an optional shift requirement.
+ */
+function matchesModShortcut(e: KeyboardEvent, key: string, shift = false): boolean {
+  return e[MOD_KEY as keyof KeyboardEvent] === true && e.shiftKey === shift && e.key.toLowerCase() === key.toLowerCase();
+}
+
+/**
+ * Main tool client component for the Text Case Converter.
+ * Wires together the tool shell, canvas, sidebar, toolbar, and keyboard shortcuts.
+ */
 export default function ToolClient() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const tool = useTool(textCaseTool, canvasRef);
@@ -47,6 +53,9 @@ export default function ToolClient() {
     document.title = title;
   }, [title]);
 
+  /**
+   * Handles partial state updates from child components (canvas, sidebar).
+   */
   const handleStateChange = useCallback(
     (patch: Partial<TextCaseState>) => {
       setToolData((prev) => ({ ...prev, ...patch }));
@@ -54,6 +63,10 @@ export default function ToolClient() {
     [setToolData]
   );
 
+  /**
+   * Converts the current input text using the selected case mode;
+   * caches the result in lastOutput and shows a success toast.
+   */
   const handleConvert = useCallback(() => {
     const { input, mode } = tool.state.data;
     if (!input.trim()) {
@@ -65,6 +78,9 @@ export default function ToolClient() {
     showToast(`Converted to ${mode}`, 'success');
   }, [tool.state.data, setToolData, showToast]);
 
+  /**
+   * Cycles through case modes in order, wrapping around at the end.
+   */
   const cycleMode = useCallback(() => {
     setToolData((prev) => {
       const currentIndex = ALL_MODES.indexOf(prev.mode);
@@ -73,6 +89,9 @@ export default function ToolClient() {
     });
   }, [setToolData]);
 
+  /**
+   * Copies the current output (or freshly-converted text) to the clipboard.
+   */
   const handleCopyOutput = useCallback(async () => {
     const { lastOutput } = tool.state.data;
     if (!lastOutput) {
@@ -99,10 +118,55 @@ export default function ToolClient() {
     }
   }, [tool.state.data, setToolData, showToast]);
 
+  /**
+   * Resets the tool to its initial state (empty input, lowercase mode).
+   */
   const handleResetState = useCallback(() => {
     setToolData((prev) => ({ ...prev, input: '', mode: 'lowercase' as const, lastOutput: '' }));
     showToast('Reset', 'success');
   }, [setToolData, showToast]);
+
+  // Wire tool-specific keyboard shortcuts using stable refs to avoid
+  // stale closure issues.
+  const convertRef = useRef<typeof handleConvert>(handleConvert);
+  const copyRef = useRef<typeof handleCopyOutput>(handleCopyOutput);
+  const resetRef = useRef<typeof handleResetState>(handleResetState);
+  const cycleRef = useRef<typeof cycleMode>(cycleMode);
+
+  // Keep refs current with latest callbacks
+  useEffect(() => {
+    convertRef.current = handleConvert;
+    copyRef.current = handleCopyOutput;
+    resetRef.current = handleResetState;
+    cycleRef.current = cycleMode;
+  });
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (matchesModShortcut(e, 'enter')) {
+        e.preventDefault();
+        convertRef.current();
+        return;
+      }
+      if (matchesModShortcut(e, 'c', true)) {
+        e.preventDefault();
+        copyRef.current();
+        return;
+      }
+      if (matchesModShortcut(e, 'r', true)) {
+        e.preventDefault();
+        resetRef.current();
+        return;
+      }
+      if (matchesModShortcut(e, 't', true)) {
+        e.preventDefault();
+        cycleRef.current();
+        return;
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   const toolbarActions = useMemo(() => tool.toolbarActions, [tool.toolbarActions]);
 

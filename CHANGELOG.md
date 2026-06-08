@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.2.0] — 2026-06-08
+
+### Fixed
+
+- **Keyboard shortcuts now actually wired to handlers**: `Ctrl+Enter` (convert),
+  `Ctrl+Shift+C` (copy), `Ctrl+Shift+R` (reset), and `Ctrl+Shift+T` (cycle mode)
+  were displayed in the sidebar but the event listeners were never connected.
+  Added a `useEffect` with stable refs that listens for these shortcuts.
+
+### Changed
+
+- Exported `ALL_VALID_MODES` from `tool-definition.ts` and reused it in
+  `tool-client.tsx` to eliminate the duplicate `ALL_MODES` array (dead code
+  reduction).
+- Added `satisfies never` exhaustiveness guard in `convertCase` default branch
+  so TypeScript flags unhandled `CaseMode` values at compile time.
+- Initialized refs inside `useEffect` instead of during render to satisfy the
+  React hooks lint rules.
+
+### Added
+
+- JSDoc documentation for `ToolClient`, `ToolToolbar`, `matchesModShortcut`,
+  `handleStateChange`, `handleConvert`, `cycleMode`, `handleCopyOutput`, and
+  `handleResetState`.
+- Mocked `ALL_VALID_MODES` in test setup to keep tests passing.
+
 ## [1.1.0] — 2026-06-08
 
 ### Fixed

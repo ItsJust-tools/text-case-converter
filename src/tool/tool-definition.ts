@@ -2,8 +2,8 @@ import type { Tool } from '@itsjust/core';
 import toolConfig from './tool.config';
 import type { TextCaseState, CaseMode } from './types';
 
-/** All valid case modes for validation and type checking. */
-const VALID_MODES: CaseMode[] = [
+/** All valid case modes for validation, type checking, and cycling. */
+export const ALL_VALID_MODES: readonly CaseMode[] = [
   'lowercase',
   'uppercase',
   'capitalize',
@@ -21,6 +21,9 @@ const VALID_MODES: CaseMode[] = [
   'alternating',
   'inverse',
 ];
+
+/** Convenience alias for internal use. */
+const VALID_MODES = ALL_VALID_MODES;
 
 /**
  * Checks whether an unknown value is a valid TextCaseState.

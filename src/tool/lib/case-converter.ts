@@ -46,7 +46,8 @@ export function convertCase(input: string, mode: CaseMode): string {
     case 'inverse':
       return toInverseCase(input);
     default:
-      return input;
+      // Exhaustiveness guard: if TypeScript complains here, a CaseMode is unhandled
+      return input satisfies never;
   }
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { convertCase, getModeLabel, getModeDescription } from '../lib/case-converter';
 import type { TextCaseState } from '../types';
 
@@ -10,8 +10,19 @@ interface ToolCanvasProps {
   onChange: (patch: Partial<TextCaseState>) => void;
 }
 
+/**
+ * Auto-resize a textarea to match its content height.
+ */
+function autoResizeTextarea(el: HTMLTextAreaElement | null): void {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = `${Math.max(el.scrollHeight, 120)}px`;
+}
+
 export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
   const [copied, setCopied] = useState(false);
+  const [copyAnimating, setCopyAnimating] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const output = useMemo(() => {
     if (!state.input.trim()) return '';
@@ -21,6 +32,11 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
       return '(conversion error)';
     }
   }, [state.input, state.mode]);
+
+  // Auto-resize the textarea on input change
+  useEffect(() => {
+    autoResizeTextarea(textareaRef.current);
+  }, [state.input]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -34,8 +50,12 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
     try {
       await navigator.clipboard.writeText(output);
       setCopied(true);
+      setCopyAnimating(true);
       onChange({ autoCopy: true, lastOutput: output });
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => {
+        setCopied(false);
+        setCopyAnimating(false);
+      }, 2000);
     } catch {
       // Clipboard unavailable
     }
@@ -43,6 +63,11 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
 
   const chars = state.input.length;
   const outputChars = output.length;
+  const wordCount = useMemo(
+    () => (state.input.trim() ? state.input.trim().split(/\s+/).length : 0),
+    [state.input]
+  );
+  const inputLines = state.input ? state.input.split('\n').length : 0;
 
   return (
     <div
@@ -58,18 +83,19 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
             Input
           </label>
           <span className="char-count">
-            {chars} character{chars !== 1 ? 's' : ''}
+            {chars} chars &middot; {wordCount} word{wordCount !== 1 ? 's' : ''} &middot; {inputLines} line{inputLines !== 1 ? 's' : ''}
           </span>
         </div>
         <textarea
           id="case-input"
-          className="case-textarea"
+          ref={textareaRef}
+          className="case-textarea case-textarea--auto"
           value={state.input}
           onChange={handleInputChange}
           placeholder="Type or paste text here to convert..."
           aria-label="Input text"
           spellCheck={false}
-          rows={6}
+          rows={3}
         />
       </div>
 
@@ -92,7 +118,7 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
             </span>
             <button
               type="button"
-              className="copy-btn"
+              className={`copy-btn${copied ? ' is-copied' : ''}`}
               onClick={handleCopy}
               disabled={!output}
               aria-label="Copy output to clipboard"
@@ -103,13 +129,17 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
           </div>
         </div>
         <div
-          className="case-output"
+          className={`case-output${copyAnimating ? ' case-output--copied' : ''}`}
           aria-label="Converted output"
           role="textbox"
           aria-readonly="true"
           tabIndex={0}
-          onClick={() => {
-            if (output) handleCopy();
+          onClick={handleCopy}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleCopy();
+            }
           }}
         >
           {output || <span className="output-placeholder">Converted text will appear here...</span>}

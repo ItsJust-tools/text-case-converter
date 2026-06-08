@@ -2,6 +2,10 @@
 
 import Link from 'next/link';
 
+/**
+ * Toolbar component for the Text Case Converter.
+ * Displays a link to the help/guide page.
+ */
 export function ToolToolbar() {
   return (
     <div className="case-toolbar">
