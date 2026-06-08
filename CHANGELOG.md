@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.0] — 2026-06-08
+
+### Fixed
+
+- Fixed `Ctrl+Shift+T` keyboard shortcut cycling: `sentence-case` and `train-case`
+  are now included in the rotation (previously skipped)
+
+### Added
+
+- Word count statistic in sidebar
+- Keyboard shortcuts reference section in sidebar
+- Comprehensive JSDoc documentation across all modules
+- Improved `capitalize` whitespace detection for better reliability
+- Edge-case tests for leading/trailing whitespace in capitalize
+
 ## [1.0.0] — 2026-06-07
 
 ### Added

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { MODE_GROUPS, getModeDescription } from '../lib/case-converter';
 import type { TextCaseState, CaseMode } from '../types';
 
@@ -21,6 +21,11 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
   const handleClear = useCallback(() => {
     onChange({ input: '', lastOutput: '' });
   }, [onChange]);
+
+  const wordCount = useMemo(
+    () => (state.input.trim() ? state.input.trim().split(/\s+/).length : 0),
+    [state.input]
+  );
 
   return (
     <div className="case-converter-sidebar">
@@ -66,6 +71,10 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
         <h3>Statistics</h3>
         <dl className="stats-list">
           <div className="stat-row">
+            <dt>Words</dt>
+            <dd>{wordCount.toLocaleString()}</dd>
+          </div>
+          <div className="stat-row">
             <dt>Input length</dt>
             <dd>{state.input.length.toLocaleString()}</dd>
           </div>
@@ -94,6 +103,29 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
         >
           Clear Input
         </button>
+      </div>
+
+      {/* Keyboard shortcuts */}
+      <div className="sidebar-section">
+        <h3>Shortcuts</h3>
+        <dl className="stats-list shortcuts-list">
+          <div className="shortcut-row">
+            <kbd className="shortcut-kbd">Ctrl+Enter</kbd>
+            <span className="shortcut-label">Convert</span>
+          </div>
+          <div className="shortcut-row">
+            <kbd className="shortcut-kbd">Ctrl+Shift+C</kbd>
+            <span className="shortcut-label">Copy</span>
+          </div>
+          <div className="shortcut-row">
+            <kbd className="shortcut-kbd">Ctrl+Shift+R</kbd>
+            <span className="shortcut-label">Reset</span>
+          </div>
+          <div className="shortcut-row">
+            <kbd className="shortcut-kbd">Ctrl+Shift+T</kbd>
+            <span className="shortcut-label">Cycle mode</span>
+          </div>
+        </dl>
       </div>
     </div>
   );

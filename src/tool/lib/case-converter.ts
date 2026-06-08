@@ -2,6 +2,10 @@ import type { CaseMode } from '../types';
 
 /**
  * Converts text according to the specified case mode.
+ *
+ * @param input - The text to convert.
+ * @param mode - The case transformation mode to apply.
+ * @returns The converted text, or an empty string if input is empty.
  */
 export function convertCase(input: string, mode: CaseMode): string {
   if (!input) return '';
@@ -12,10 +16,7 @@ export function convertCase(input: string, mode: CaseMode): string {
     case 'uppercase':
       return input.toUpperCase();
     case 'capitalize':
-      return input
-        .split(/(\s+)/)
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join('');
+      return capitalizeWords(input);
     case 'title-case':
       return titleCase(input);
     case 'sentence-case':
@@ -49,7 +50,10 @@ export function convertCase(input: string, mode: CaseMode): string {
   }
 }
 
-/** Small words that typically remain lowercase in title case. */
+/**
+ * Set of minor words that typically remain lowercase in title case
+ * (unless they are the first or last word of the title).
+ */
 const MINOR_WORDS = new Set([
   'a',
   'an',
@@ -74,6 +78,31 @@ const MINOR_WORDS = new Set([
   'be',
 ]);
 
+/**
+ * Capitalizes the first letter of each word while preserving whitespace.
+ * Words are split on whitespace boundaries; spacing tokens are kept intact.
+ *
+ * @param input - The text to capitalize.
+ * @returns The text with each word's first letter uppercased and the rest lowercased.
+ */
+function capitalizeWords(input: string): string {
+  return input
+    .split(/(\s+)/)
+    .map((word) => {
+      // Preserve whitespace tokens as-is
+      if (/^\s*$/.test(word)) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join('');
+}
+
+/**
+ * Converts text to Title Case: major words capitalized, minor words lowercase
+ * (unless they are the first or last word).
+ *
+ * @param input - The text to convert.
+ * @returns The title-cased text.
+ */
 function titleCase(input: string): string {
   const words = input.split(/(\s+)/);
   return words
@@ -97,6 +126,9 @@ function titleCase(input: string): string {
 /**
  * Converts text to sentence case: first word capitalized, rest lowercase.
  * Preserves sentence boundaries (period, exclamation, question mark).
+ *
+ * @param input - The text to convert.
+ * @returns The sentence-cased text.
  */
 function toSentenceCase(input: string): string {
   // First lowercase everything
@@ -104,11 +136,19 @@ function toSentenceCase(input: string): string {
   // Capitalize first letter of the string
   result = result.replace(/^\w/, (first) => first.toUpperCase());
   // Capitalize first letter after sentence-ending punctuation
-  result = result.replace(/([.!?]\s*)(\w)/g, (_, punctuation, letter) => punctuation + letter.toUpperCase());
+  result = result.replace(
+    /([.!?]\s*)(\w)/g,
+    (_, punctuation, letter) => punctuation + letter.toUpperCase()
+  );
   return result;
 }
 
-/** Splits input into words by spaces, underscores, hyphens, or camelCase boundaries. */
+/**
+ * Splits input into words by spaces, underscores, hyphens, or camelCase boundaries.
+ *
+ * @param input - The text to split.
+ * @returns An array of individual word strings.
+ */
 function splitWords(input: string): string[] {
   // First normalize separators to spaces
   const normalized = input
@@ -118,60 +158,117 @@ function splitWords(input: string): string[] {
   return normalized.split(/\s+/).filter(Boolean);
 }
 
+/**
+ * Converts text to camelCase: first word lowercase, subsequent words capitalized, no separators.
+ *
+ * @param input - The text to convert.
+ * @returns The camelCased string, or empty string if no words.
+ */
 function toCamelCase(input: string): string {
   const words = splitWords(input);
   if (words.length === 0) return '';
   const first = words[0];
   if (!first) return '';
-  const rest = words.slice(1);
   return (
     first.toLowerCase() +
-    rest.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('')
+    words
+      .slice(1)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join('')
   );
 }
 
+/**
+ * Converts text to PascalCase: all words capitalized, no separators.
+ *
+ * @param input - The text to convert.
+ * @returns The PascalCase string, or empty string if no words.
+ */
 function toPascalCase(input: string): string {
   const words = splitWords(input);
   if (words.length === 0) return '';
   return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
 }
 
+/**
+ * Converts text to snake_case: all words lowercase, separated by underscores.
+ *
+ * @param input - The text to convert.
+ * @returns The snake_cased string.
+ */
 function toSnakeCase(input: string): string {
   return splitWords(input)
     .map((w) => w.toLowerCase())
     .join('_');
 }
 
+/**
+ * Converts text to SCREAMING_SNAKE_CASE: all words uppercase, separated by underscores.
+ *
+ * @param input - The text to convert.
+ * @returns The SCREAMING_SNAKE_CASED string.
+ */
 function toScreamingSnakeCase(input: string): string {
   return splitWords(input)
     .map((w) => w.toUpperCase())
     .join('_');
 }
 
+/**
+ * Converts text to kebab-case: all words lowercase, separated by hyphens.
+ *
+ * @param input - The text to convert.
+ * @returns The kebab-cased string.
+ */
 function toKebabCase(input: string): string {
   return splitWords(input)
     .map((w) => w.toLowerCase())
     .join('-');
 }
 
+/**
+ * Converts text to Train-Case: all words capitalized, separated by hyphens.
+ *
+ * @param input - The text to convert.
+ * @returns The train-cased string.
+ */
 function toTrainCase(input: string): string {
   return splitWords(input)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join('-');
 }
 
+/**
+ * Converts text to SCREAMING-KEBAB-CASE: all words uppercase, separated by hyphens.
+ *
+ * @param input - The text to convert.
+ * @returns The SCREAMING-KEBAB-CASED string.
+ */
 function toScreamingKebabCase(input: string): string {
   return splitWords(input)
     .map((w) => w.toUpperCase())
     .join('-');
 }
 
+/**
+ * Converts text to dot.case: all words lowercase, separated by dots.
+ *
+ * @param input - The text to convert.
+ * @returns The dot.cased string.
+ */
 function toDotCase(input: string): string {
   return splitWords(input)
     .map((w) => w.toLowerCase())
     .join('.');
 }
 
+/**
+ * Converts text to alternating case (aLtErNaTiNg): even-indexed characters lowercase,
+ * odd-indexed characters uppercase. Non-alphabetic characters are preserved as-is.
+ *
+ * @param input - The text to convert.
+ * @returns The alternating-cased string.
+ */
 function toAlternatingCase(input: string): string {
   return input
     .split('')
@@ -179,6 +276,13 @@ function toAlternatingCase(input: string): string {
     .join('');
 }
 
+/**
+ * Converts text to inverse case: all uppercase letters become lowercase,
+ * all lowercase letters become uppercase. Non-alphabetic characters are unchanged.
+ *
+ * @param input - The text to convert.
+ * @returns The inverse-cased string.
+ */
 function toInverseCase(input: string): string {
   return input
     .split('')
@@ -192,6 +296,9 @@ function toInverseCase(input: string): string {
 
 /**
  * Returns a human-readable description of what a case mode does.
+ *
+ * @param mode - The case mode to describe.
+ * @returns A short description string, or empty string for unknown modes.
  */
 export function getModeDescription(mode: CaseMode): string {
   const descriptions: Record<CaseMode, string> = {
@@ -216,7 +323,10 @@ export function getModeDescription(mode: CaseMode): string {
 }
 
 /**
- * Returns a short label for a case mode shown as a badge/tag.
+ * Returns a short label for a case mode shown as a badge/tag in the UI.
+ *
+ * @param mode - The case mode to get a label for.
+ * @returns A short label string, or the mode name itself for unknown modes.
  */
 export function getModeLabel(mode: CaseMode): string {
   const labels: Record<CaseMode, string> = {
@@ -242,6 +352,7 @@ export function getModeLabel(mode: CaseMode): string {
 
 /**
  * Groups case modes for UI organization.
+ * Each group contains a label and an ordered array of its modes.
  */
 export const MODE_GROUPS: { label: string; modes: CaseMode[] }[] = [
   {

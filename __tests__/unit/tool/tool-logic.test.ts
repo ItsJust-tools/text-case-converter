@@ -14,26 +14,34 @@ describe('TextCase converter logic', () => {
     it('returns empty string for empty input', () => {
       expect(convertCase('', 'lowercase')).toBe('');
       expect(convertCase('', 'camelCase')).toBe('');
+      expect(convertCase('', 'alternating')).toBe('');
     });
 
     it('converts to lowercase', () => {
       expect(convertCase('Hello World', 'lowercase')).toBe('hello world');
       expect(convertCase('HELLO', 'lowercase')).toBe('hello');
+      expect(convertCase('MIXED Case 123!', 'lowercase')).toBe('mixed case 123!');
     });
 
     it('converts to UPPERCASE', () => {
       expect(convertCase('Hello World', 'uppercase')).toBe('HELLO WORLD');
       expect(convertCase('hello', 'uppercase')).toBe('HELLO');
+      expect(convertCase('123 abc', 'uppercase')).toBe('123 ABC');
     });
 
-    it('capitalizes each word', () => {
+    it('capitalizes each word preserving whitespace', () => {
       expect(convertCase('hello world', 'capitalize')).toBe('Hello World');
       expect(convertCase('hELLO', 'capitalize')).toBe('Hello');
+      expect(convertCase('hello   world', 'capitalize')).toBe('Hello   World');
+      expect(convertCase('  hello world', 'capitalize')).toBe('  Hello World');
+      expect(convertCase('hello', 'capitalize')).toBe('Hello');
     });
 
     it('converts to Title Case', () => {
       expect(convertCase('the quick brown fox', 'title-case')).toBe('The Quick Brown Fox');
       expect(convertCase('a tale of two cities', 'title-case')).toBe('A Tale of Two Cities');
+      expect(convertCase('the', 'title-case')).toBe('The');
+      expect(convertCase('the end', 'title-case')).toBe('The End');
     });
 
     it('converts to Sentence Case', () => {
@@ -42,6 +50,7 @@ describe('TextCase converter logic', () => {
       expect(convertCase('first sentence. second sentence! third?', 'sentence-case')).toBe(
         'First sentence. Second sentence! Third?'
       );
+      expect(convertCase('', 'sentence-case')).toBe('');
     });
 
     it('converts to camelCase', () => {
@@ -49,11 +58,14 @@ describe('TextCase converter logic', () => {
       expect(convertCase('hello-world', 'camelCase')).toBe('helloWorld');
       expect(convertCase('hello_world', 'camelCase')).toBe('helloWorld');
       expect(convertCase('HelloWorld', 'camelCase')).toBe('helloWorld');
+      expect(convertCase('HELLO WORLD', 'camelCase')).toBe('helloWorld');
     });
 
     it('converts to PascalCase', () => {
       expect(convertCase('hello world', 'PascalCase')).toBe('HelloWorld');
       expect(convertCase('hello-world', 'PascalCase')).toBe('HelloWorld');
+      expect(convertCase('hello_world', 'PascalCase')).toBe('HelloWorld');
+      expect(convertCase('helloWorld', 'PascalCase')).toBe('HelloWorld');
     });
 
     it('converts to snake_case', () => {
@@ -64,25 +76,30 @@ describe('TextCase converter logic', () => {
 
     it('converts to SCREAMING_SNAKE_CASE', () => {
       expect(convertCase('hello world', 'SCREAMING_SNAKE_CASE')).toBe('HELLO_WORLD');
+      expect(convertCase('fooBar', 'SCREAMING_SNAKE_CASE')).toBe('FOO_BAR');
     });
 
     it('converts to kebab-case', () => {
       expect(convertCase('hello world', 'kebab-case')).toBe('hello-world');
       expect(convertCase('helloWorld', 'kebab-case')).toBe('hello-world');
+      expect(convertCase('hello_world', 'kebab-case')).toBe('hello-world');
     });
 
     it('converts to Train-Case', () => {
       expect(convertCase('hello world', 'train-case')).toBe('Hello-World');
       expect(convertCase('helloWorld', 'train-case')).toBe('Hello-World');
       expect(convertCase('hello_world', 'train-case')).toBe('Hello-World');
+      expect(convertCase('hello-world', 'train-case')).toBe('Hello-World');
     });
 
     it('converts to SCREAMING-KEBAB-CASE', () => {
       expect(convertCase('hello world', 'SCREAMING-KEBAB-CASE')).toBe('HELLO-WORLD');
+      expect(convertCase('fooBar', 'SCREAMING-KEBAB-CASE')).toBe('FOO-BAR');
     });
 
     it('converts to dot.case', () => {
       expect(convertCase('hello world', 'dot.case')).toBe('hello.world');
+      expect(convertCase('helloWorld', 'dot.case')).toBe('hello.world');
     });
 
     it('converts to lowercasing', () => {
@@ -93,19 +110,49 @@ describe('TextCase converter logic', () => {
 
     it('converts to alternating case', () => {
       expect(convertCase('hello', 'alternating')).toBe('hElLo');
+      expect(convertCase('HELLO', 'alternating')).toBe('hElLo');
     });
 
     it('converts to inverse case', () => {
       expect(convertCase('Hello World', 'inverse')).toBe('hELLO wORLD');
+      expect(convertCase('ABC', 'inverse')).toBe('abc');
     });
 
     it('handles non-alphabetic characters in alternating case', () => {
       expect(convertCase('h1', 'alternating')).toBe('h1');
       expect(convertCase('123', 'alternating')).toBe('123');
+      expect(convertCase('a1b2c3', 'alternating')).toBe('a1b2c3');
     });
 
     it('handles non-alphabetic characters in inverse case', () => {
       expect(convertCase('Hello 123!', 'inverse')).toBe('hELLO 123!');
+      expect(convertCase('123', 'inverse')).toBe('123');
+    });
+
+    it('converts single characters correctly', () => {
+      expect(convertCase('a', 'uppercase')).toBe('A');
+      expect(convertCase('A', 'lowercase')).toBe('a');
+      expect(convertCase('a', 'capitalize')).toBe('A');
+      expect(convertCase('a', 'alternating')).toBe('a');
+      expect(convertCase('a', 'inverse')).toBe('A');
+      expect(convertCase('a', 'camelCase')).toBe('a');
+      expect(convertCase('a', 'PascalCase')).toBe('A');
+    });
+
+    it('handles unicode characters gracefully', () => {
+      expect(convertCase('café', 'uppercase')).toBe('CAFÉ');
+      expect(convertCase('ÖSTERREICH', 'lowercase')).toBe('österreich');
+    });
+
+    it('handles leading and trailing whitespace', () => {
+      expect(convertCase('  hello', 'uppercase')).toBe('  HELLO');
+      expect(convertCase('hello  ', 'lowercase')).toBe('hello  ');
+    });
+
+    it('handles mixed separators for code-style conversions', () => {
+      expect(convertCase('foo_bar-baz', 'camelCase')).toBe('fooBarBaz');
+      expect(convertCase('foo_bar-baz', 'PascalCase')).toBe('FooBarBaz');
+      expect(convertCase('foo_BAR-baz', 'snake_case')).toBe('foo_bar_baz');
     });
 
     it('defaults to returning input for unknown mode', () => {
@@ -148,6 +195,8 @@ describe('TextCase converter logic', () => {
       expect(getModeLabel('lowercase')).toBe('abc');
       expect(getModeLabel('uppercase')).toBe('ABC');
       expect(getModeLabel('camelCase')).toBe('camel');
+      expect(getModeLabel('sentence-case')).toBe('Sent');
+      expect(getModeLabel('train-case')).toBe('Train');
     });
 
     it('returns mode as fallback for unknown mode', () => {
@@ -156,7 +205,7 @@ describe('TextCase converter logic', () => {
   });
 
   describe('MODE_GROUPS', () => {
-    it('contains all modes across all groups', () => {
+    it('contains all 16 modes across all groups', () => {
       const allGrouped = MODE_GROUPS.flatMap((g) => g.modes);
       expect(allGrouped).toHaveLength(16);
       expect(allGrouped).toContain('lowercase');
@@ -164,6 +213,18 @@ describe('TextCase converter logic', () => {
       expect(allGrouped).toContain('SCREAMING-KEBAB-CASE');
       expect(allGrouped).toContain('sentence-case');
       expect(allGrouped).toContain('train-case');
+      expect(allGrouped).toContain('inverse');
+    });
+
+    it('assigns each mode to exactly one group', () => {
+      const seen = new Set<CaseMode>();
+      for (const group of MODE_GROUPS) {
+        for (const mode of group.modes) {
+          expect(seen.has(mode)).toBe(false);
+          seen.add(mode);
+        }
+      }
+      expect(seen.size).toBe(16);
     });
   });
 });
@@ -191,6 +252,22 @@ describe('TextCaseTool definition', () => {
     if (result.success) {
       expect(result.data.input).toBe('Test');
       expect(result.data.mode).toBe('camelCase');
+    }
+  });
+
+  it('deserializes with train-case mode', () => {
+    const result = textCaseTool.deserialize({ input: 'hello world', mode: 'train-case' });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.mode).toBe('train-case');
+    }
+  });
+
+  it('deserializes with sentence-case mode', () => {
+    const result = textCaseTool.deserialize({ input: 'hello world', mode: 'sentence-case' });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.mode).toBe('sentence-case');
     }
   });
 
@@ -264,5 +341,25 @@ describe('createMockToolState with TextCaseState', () => {
     });
     state.setData((prev) => ({ ...prev, input: 'Hello World' }));
     expect(state.data.input).toBe('Hello World');
+  });
+
+  it('supports train-case and sentence-case modes', () => {
+    const trainState = createMockToolState<TextCaseState>({
+      input: 'hello world',
+      mode: 'train-case',
+      showOutput: true,
+      autoCopy: false,
+      lastOutput: '',
+    });
+    expect(trainState.data.mode).toBe('train-case');
+
+    const sentenceState = createMockToolState<TextCaseState>({
+      input: 'hello world',
+      mode: 'sentence-case',
+      showOutput: true,
+      autoCopy: false,
+      lastOutput: '',
+    });
+    expect(sentenceState.data.mode).toBe('sentence-case');
   });
 });

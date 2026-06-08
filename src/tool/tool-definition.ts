@@ -2,6 +2,7 @@ import type { Tool } from '@itsjust/core';
 import toolConfig from './tool.config';
 import type { TextCaseState, CaseMode } from './types';
 
+/** All valid case modes for validation and type checking. */
 const VALID_MODES: CaseMode[] = [
   'lowercase',
   'uppercase',
@@ -22,7 +23,10 @@ const VALID_MODES: CaseMode[] = [
 ];
 
 /**
- * Type guard for TextCaseState.
+ * Checks whether an unknown value is a valid TextCaseState.
+ *
+ * @param value - The value to check.
+ * @returns `true` if value is a valid TextCaseState, `false` otherwise.
  */
 function isTextCaseState(value: unknown): value is TextCaseState {
   if (typeof value !== 'object' || value === null) return false;
@@ -39,6 +43,7 @@ function isTextCaseState(value: unknown): value is TextCaseState {
 
 /**
  * The Tool definition for the Text Case Converter.
+ * Defines default state, serialization, and deserialization logic.
  */
 export const textCaseTool: Tool<TextCaseState> = {
   id: toolConfig.id,
