@@ -113,22 +113,25 @@ describe('TextCase converter logic', () => {
     it('converts to alternating case', () => {
       expect(convertCase('hello', 'alternating')).toBe('hElLo');
       expect(convertCase('HELLO', 'alternating')).toBe('hElLo');
+      expect(convertCase('hello world', 'alternating')).toBe('hElLo WoRlD');
     });
 
     it('converts to inverse case', () => {
       expect(convertCase('Hello World', 'inverse')).toBe('hELLO wORLD');
       expect(convertCase('ABC', 'inverse')).toBe('abc');
+      expect(convertCase('Österreich', 'inverse')).toBe('öSTERREICH');
     });
 
     it('handles non-alphabetic characters in alternating case', () => {
       expect(convertCase('h1', 'alternating')).toBe('h1');
       expect(convertCase('123', 'alternating')).toBe('123');
-      expect(convertCase('a1b2c3', 'alternating')).toBe('a1b2c3');
+      expect(convertCase('a1b2c3', 'alternating')).toBe('a1B2c3');
     });
 
     it('handles non-alphabetic characters in inverse case', () => {
       expect(convertCase('Hello 123!', 'inverse')).toBe('hELLO 123!');
       expect(convertCase('123', 'inverse')).toBe('123');
+      expect(convertCase('Café', 'inverse')).toBe('cAFÉ');
     });
 
     it('converts single characters correctly', () => {

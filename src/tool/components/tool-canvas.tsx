@@ -25,7 +25,8 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const output = useMemo(() => {
-    if (!state.input.trim()) return '';
+    const trimmed = state.input.trim();
+    if (!trimmed) return '';
     try {
       return convertCase(state.input, state.mode);
     } catch {
@@ -51,7 +52,7 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
       await navigator.clipboard.writeText(output);
       setCopied(true);
       setCopyAnimating(true);
-      onChange({ autoCopy: true, lastOutput: output });
+      onChange({ lastOutput: output });
       setTimeout(() => {
         setCopied(false);
         setCopyAnimating(false);
@@ -63,10 +64,8 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
 
   const chars = state.input.length;
   const outputChars = output.length;
-  const wordCount = useMemo(
-    () => (state.input.trim() ? state.input.trim().split(/\s+/).length : 0),
-    [state.input]
-  );
+  const trimmed = state.input.trim();
+  const wordCount = useMemo(() => (trimmed ? trimmed.split(/\s+/).length : 0), [trimmed]);
   const inputLines = state.input ? state.input.split('\n').length : 0;
 
   return (
@@ -83,7 +82,8 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
             Input
           </label>
           <span className="char-count">
-            {chars} chars &middot; {wordCount} word{wordCount !== 1 ? 's' : ''} &middot; {inputLines} line{inputLines !== 1 ? 's' : ''}
+            {chars} chars &middot; {wordCount} word{wordCount !== 1 ? 's' : ''} &middot;{' '}
+            {inputLines} line{inputLines !== 1 ? 's' : ''}
           </span>
         </div>
         <textarea
@@ -121,7 +121,8 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
               className={`copy-btn${copied ? ' is-copied' : ''}`}
               onClick={handleCopy}
               disabled={!output}
-              aria-label="Copy output to clipboard"
+              aria-label={copied ? 'Copied to clipboard' : 'Copy output to clipboard'}
+              aria-live="polite"
               title="Copy to clipboard"
             >
               {copied ? '✓ Copied!' : 'Copy'}
@@ -133,6 +134,7 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
           aria-label="Converted output"
           role="textbox"
           aria-readonly="true"
+          aria-live="polite"
           tabIndex={0}
           onClick={handleCopy}
           onKeyDown={(e) => {
