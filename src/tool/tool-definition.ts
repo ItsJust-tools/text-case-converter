@@ -60,7 +60,18 @@ export const textCaseTool: Tool<TextCaseState> = {
     autoCopy: false,
     lastOutput: '',
   },
-  serialize: (state) => JSON.stringify({ input: state.input, mode: state.mode }, null, 2),
+  serialize: (state) =>
+    JSON.stringify(
+      {
+        input: state.input,
+        mode: state.mode,
+        showOutput: state.showOutput,
+        autoCopy: state.autoCopy,
+        lastOutput: state.lastOutput,
+      },
+      null,
+      2
+    ),
   deserialize: (data) => {
     if (isTextCaseState(data)) {
       return {
@@ -74,9 +85,10 @@ export const textCaseTool: Tool<TextCaseState> = {
         },
       };
     }
+    const validModes = VALID_MODES.join(', ');
     return {
       success: false,
-      error: 'Invalid data format: expected { input: string, mode: CaseMode }',
+      error: `Invalid data format: expected { input: string, mode: CaseMode } — valid modes: ${validModes}`,
     };
   },
   exporters: [],
