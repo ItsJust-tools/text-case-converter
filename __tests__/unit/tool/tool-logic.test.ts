@@ -182,7 +182,9 @@ describe('TextCase converter logic', () => {
     });
 
     it('handles sentence-case with unicode sentence starters', () => {
-      expect(convertCase('über cool. nächste satz', 'sentence-case')).toBe('Über cool. Nächste satz');
+      expect(convertCase('über cool. nächste satz', 'sentence-case')).toBe(
+        'Über cool. Nächste satz'
+      );
     });
 
     it('handles leading and trailing whitespace', () => {
@@ -259,6 +261,30 @@ describe('TextCase converter logic', () => {
     it('returns mode as fallback for unknown mode', () => {
       expect(getModeLabel('unknown' as CaseMode)).toBe('unknown');
     });
+
+    it('returns labels for all 16 modes', () => {
+      const modes: CaseMode[] = [
+        'lowercase',
+        'uppercase',
+        'capitalize',
+        'title-case',
+        'sentence-case',
+        'camelCase',
+        'PascalCase',
+        'snake_case',
+        'SCREAMING_SNAKE_CASE',
+        'kebab-case',
+        'train-case',
+        'SCREAMING-KEBAB-CASE',
+        'dot.case',
+        'flatcase',
+        'alternating',
+        'inverse',
+      ];
+      for (const mode of modes) {
+        expect(getModeLabel(mode)).toBeTruthy();
+      }
+    });
   });
 
   describe('MODE_GROUPS', () => {
@@ -283,6 +309,50 @@ describe('TextCase converter logic', () => {
         }
       }
       expect(seen.size).toBe(16);
+    });
+  });
+
+  describe('exhaustive mode coverage', () => {
+    it('converts every CaseMode even with numbers and special chars', () => {
+      const input = 'Hello 123 World!';
+      const allModes: CaseMode[] = [
+        'lowercase',
+        'uppercase',
+        'capitalize',
+        'title-case',
+        'sentence-case',
+        'camelCase',
+        'PascalCase',
+        'snake_case',
+        'SCREAMING_SNAKE_CASE',
+        'kebab-case',
+        'train-case',
+        'SCREAMING-KEBAB-CASE',
+        'dot.case',
+        'flatcase',
+        'alternating',
+        'inverse',
+      ];
+      for (const mode of allModes) {
+        const result = convertCase(input, mode);
+        expect(result).toBeTruthy();
+        // Output should never be empty for non-empty input
+        expect(result.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('handles unicode and accented characters in code-style conversions', () => {
+      expect(convertCase('über cool', 'camelCase')).toBe('überCool');
+      expect(convertCase('über cool', 'PascalCase')).toBe('ÜberCool');
+      expect(convertCase('über cool', 'snake_case')).toBe('über_cool');
+      expect(convertCase('naïve café', 'kebab-case')).toBe('naïve-café');
+    });
+
+    it('handles trailing separators gracefully', () => {
+      expect(convertCase('hello world ', 'camelCase')).toBe('helloWorld');
+      expect(convertCase('hello world-', 'PascalCase')).toBe('HelloWorld');
+      expect(convertCase('hello world_', 'snake_case')).toBe('hello_world');
+      expect(convertCase('-hello world', 'camelCase')).toBe('helloWorld');
     });
   });
 });

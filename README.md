@@ -2,6 +2,11 @@
 
 > A privacy-first, client-side text case converter. Convert text between different cases — **lowercase**, **UPPERCASE**, **Title Case**, **camelCase**, **snake_case**, **kebab-case**, **PascalCase**, and more.
 
+[![CI](https://github.com/ItsJust-tools/text-case-converter/actions/workflows/ci.yml/badge.svg)](https://github.com/ItsJust-tools/text-case-converter/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=next.js)](https://nextjs.org/)
+
 Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.com/ItsJust-tools/itsjust) framework. All processing happens locally in your browser — **zero data leaves your device**.
 
 **Live site:** [text-case-converter.itsjust.tools](https://text-case-converter.itsjust.tools)
@@ -12,6 +17,7 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 - **Real-time preview:** output updates automatically as you type or select a new mode — no button press needed
 - **One-click copy:** click the output area or Copy button to grab transformed text instantly
 - **Live statistics:** word count, character count, and line count update in real-time in the sidebar
+- **Output word count:** the preview pane also tracks word count of the converted text
 - **Smart case cycling:** use `Ctrl+Shift+T` to cycle through all 16 case modes and preview each one in real-time
 - **Keyboard shortcuts** for quick access:
   - `Ctrl+Enter` — Apply conversion
@@ -47,23 +53,46 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 > **Note:** Code-style conversions (camelCase, PascalCase, snake_case, etc.)
 > automatically split on letter↔digit boundaries. For example,
 > `hello2world` becomes `hello2World` in camelCase and `hello_2_world` in snake_case.
+> Unicode and accented characters (é, ñ, ü) are fully supported.
 
 ## Getting Started
 
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (see `.nvmrc` for the required version)
+- npm (ships with Node.js)
+
+### Install and Run
+
 ```bash
+# Install dependencies
 npm install
+
+# Start dev server with Turbopack
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Docker
+
+```bash
+# Build
+docker compose build
+
+# Run
+docker compose up
+```
 
 ## Tech Stack
 
 - **Framework:** Next.js 16 (Turbopack)
 - **Language:** TypeScript 6
 - **UI:** React 19, CSS Variables, Tailwind 4
-- **Testing:** Vitest, Playwright
+- **Testing:** Vitest (unit), Playwright (e2e)
 - **Core:** @itsjust/core (tool-shell, storage, theme, import/export)
+- **Linting:** ESLint, Prettier
+- **Pre-commit:** Husky, lint-staged
 
 ## Project Structure
 
@@ -77,6 +106,8 @@ src/
     ├── tool-definition.ts  # Tool state, serialization, validation, mode list
     ├── tool.config.ts  # Tool configuration and keyboard shortcuts
     └── types.ts        # TypeScript type definitions (CaseMode, TextCaseState)
+packages/
+└── core/               # Shared ItsJust framework (@itsjust/core)
 ```
 
 ## Development
@@ -91,12 +122,26 @@ npm run dev
 # Run unit tests
 npm test
 
+# Run unit tests in watch mode
+npm run test:watch
+
 # Run end-to-end tests (requires dev server)
 npm run test:e2e
 
 # Check formatting
 npm run format:check
+
+# Format all files
+npm run format
+
+# Lint
+npm run lint
 ```
+
+### Pre-commit Checks
+
+This project uses Husky and lint-staged to automatically format and lint
+staged files before each commit.
 
 ## Adding a New Case Mode
 
@@ -111,6 +156,14 @@ npm run format:check
 
 Saved state preserves all fields: `input`, `mode`, `showOutput`, `autoCopy`, and `lastOutput`. Deserialization validates that `mode` is one of the 16 known cases and gracefully fills defaults for missing optional fields.
 
+State is saved to `localStorage` automatically via the `useTool` hook.
+
 ## License
 
 MIT © ItsJust Tools
+
+---
+
+<p align="center">
+  <sub>Built with ❤️ as part of the <a href="https://github.com/ItsJust-tools">ItsJust Tools</a> collection.</sub>
+</p>

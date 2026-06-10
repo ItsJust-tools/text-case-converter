@@ -31,7 +31,11 @@ const ALL_MODES = ALL_VALID_MODES;
  * and an optional shift requirement.
  */
 function matchesModShortcut(e: KeyboardEvent, key: string, shift = false): boolean {
-  return e[MOD_KEY as keyof KeyboardEvent] === true && e.shiftKey === shift && e.key.toLowerCase() === key.toLowerCase();
+  return (
+    e[MOD_KEY as keyof KeyboardEvent] === true &&
+    e.shiftKey === shift &&
+    e.key.toLowerCase() === key.toLowerCase()
+  );
 }
 
 /**
@@ -55,10 +59,23 @@ export default function ToolClient() {
 
   /**
    * Handles partial state updates from child components (canvas, sidebar).
+   * When the input or mode changes, automatically recompute the output
+   * and cache it in lastOutput so keyboard shortcuts stay consistent
+   * with the real-time preview.
    */
   const handleStateChange = useCallback(
     (patch: Partial<TextCaseState>) => {
-      setToolData((prev) => ({ ...prev, ...patch }));
+      setToolData((prev) => {
+        const next = { ...prev, ...patch };
+        // Keep lastOutput in sync whenever input or mode changes
+        if ('input' in patch || 'mode' in patch) {
+          const trimmed = next.input.trim();
+          if (trimmed) {
+            next.lastOutput = convertCase(next.input, next.mode);
+          }
+        }
+        return next;
+      });
     },
     [setToolData]
   );
@@ -90,28 +107,20 @@ export default function ToolClient() {
   }, [setToolData]);
 
   /**
-   * Copies the current output (or freshly-converted text) to the clipboard.
+   * Copies the current output to the clipboard.
+   * Always computes fresh output from the current input and mode
+   * to stay consistent with the real-time preview in the canvas.
    */
   const handleCopyOutput = useCallback(async () => {
-    const { lastOutput } = tool.state.data;
-    if (!lastOutput) {
-      const { input, mode } = tool.state.data;
-      if (!input.trim()) {
-        showToast('Nothing to copy', 'error');
-        return;
-      }
-      const output = convertCase(input, mode);
-      setToolData((prev) => ({ ...prev, lastOutput: output }));
-      try {
-        await navigator.clipboard.writeText(output);
-        showToast('Copied to clipboard', 'success');
-      } catch {
-        showToast('Failed to copy', 'error');
-      }
+    const { input, mode } = tool.state.data;
+    if (!input.trim()) {
+      showToast('Nothing to copy', 'error');
       return;
     }
+    const output = convertCase(input, mode);
+    setToolData((prev) => ({ ...prev, lastOutput: output }));
     try {
-      await navigator.clipboard.writeText(lastOutput);
+      await navigator.clipboard.writeText(output);
       showToast('Copied to clipboard', 'success');
     } catch {
       showToast('Failed to copy', 'error');

@@ -51,6 +51,8 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
     if (!output) return;
     try {
       await navigator.clipboard.writeText(output);
+      // Sync lastOutput so keyboard shortcuts and exports use the latest result
+      onChange({ lastOutput: output });
       setCopied(true);
       setCopyAnimating(true);
       setTimeout(() => {
@@ -60,12 +62,16 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
     } catch {
       // Clipboard unavailable
     }
-  }, [output]);
+  }, [output, onChange]);
 
   const chars = state.input.length;
   const outputChars = output.length;
   const trimmed = state.input.trim();
   const wordCount = useMemo(() => (trimmed ? trimmed.split(/\s+/).length : 0), [trimmed]);
+  const outputWordCount = useMemo(() => {
+    const trimmedOutput = output.trim();
+    return trimmedOutput ? trimmedOutput.split(/\s+/).length : 0;
+  }, [output]);
   const inputLines = state.input ? state.input.split('\n').length : 0;
 
   return (
@@ -100,12 +106,7 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
       </div>
 
       {/* Mode indicator */}
-      <div
-        className="mode-indicator"
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-      >
+      <div className="mode-indicator" role="status" aria-live="polite" aria-atomic="true">
         <span className="mode-badge" title={getModeDescription(state.mode)}>
           {getModeLabel(state.mode)}
         </span>
@@ -119,7 +120,8 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
           <label className="section-label">Output</label>
           <div className="output-actions">
             <span className="char-count">
-              {outputChars} character{outputChars !== 1 ? 's' : ''}
+              {outputChars} character{outputChars !== 1 ? 's' : ''} &middot; {outputWordCount} word
+              {outputWordCount !== 1 ? 's' : ''}
             </span>
             <button
               type="button"
