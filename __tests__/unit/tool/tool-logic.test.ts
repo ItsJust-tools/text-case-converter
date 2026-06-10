@@ -51,6 +51,9 @@ describe('TextCase converter logic', () => {
         'First sentence. Second sentence! Third?'
       );
       expect(convertCase('', 'sentence-case')).toBe('');
+      expect(convertCase('über cool. nächste sentence', 'sentence-case')).toBe(
+        'Über cool. Nächste sentence'
+      );
     });
 
     it('converts to camelCase', () => {

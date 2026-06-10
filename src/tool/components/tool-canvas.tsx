@@ -52,7 +52,6 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
       await navigator.clipboard.writeText(output);
       setCopied(true);
       setCopyAnimating(true);
-      onChange({ lastOutput: output });
       setTimeout(() => {
         setCopied(false);
         setCopyAnimating(false);
@@ -60,7 +59,7 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
     } catch {
       // Clipboard unavailable
     }
-  }, [output, onChange]);
+  }, [output]);
 
   const chars = state.input.length;
   const outputChars = output.length;

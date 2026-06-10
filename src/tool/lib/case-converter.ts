@@ -45,7 +45,8 @@ export function convertCase(input: string, mode: CaseMode): string {
       return toInverseCase(input);
     default:
       // Exhaustiveness guard: if TypeScript complains here, a CaseMode is unhandled
-      return input satisfies never;
+      const _exhaustiveCheck: never = mode;
+      return input;
   }
 }
 
@@ -132,11 +133,11 @@ function titleCase(input: string): string {
 function toSentenceCase(input: string): string {
   // First lowercase everything
   let result = input.toLowerCase();
-  // Capitalize first letter of the string
-  result = result.replace(/^\w/, (first) => first.toUpperCase());
-  // Capitalize first letter after sentence-ending punctuation
+  // Capitalize first letter of the string (Unicode-aware)
+  result = result.replace(/^\p{L}/u, (first) => first.toUpperCase());
+  // Capitalize first letter after sentence-ending punctuation (Unicode-aware)
   result = result.replace(
-    /([.!?]\s*)(\w)/g,
+    /([.!?]\s*)(\p{L})/gu,
     (_, punctuation, letter) => punctuation + letter.toUpperCase()
   );
   return result;
