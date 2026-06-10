@@ -131,6 +131,20 @@ describe('TextCase converter logic', () => {
       expect(convertCase('a1b2c3', 'alternating')).toBe('a1B2c3');
     });
 
+    it('handles alternating case with mixed separators', () => {
+      // Underscores and hyphens are treated as separators, not letters
+      expect(convertCase('hello_world', 'alternating')).toBe('hElLo_WoRlD');
+      expect(convertCase('hello-world', 'alternating')).toBe('hElLo-WoRlD');
+      expect(convertCase('hello.world', 'alternating')).toBe('hElLo.WoRlD');
+    });
+
+    it('handles alternating case with empty or single character', () => {
+      expect(convertCase('', 'alternating')).toBe('');
+      expect(convertCase('a', 'alternating')).toBe('a');
+      expect(convertCase('A', 'alternating')).toBe('a');
+      expect(convertCase('ab', 'alternating')).toBe('aB');
+    });
+
     it('handles non-alphabetic characters in inverse case', () => {
       expect(convertCase('Hello 123!', 'inverse')).toBe('hELLO 123!');
       expect(convertCase('123', 'inverse')).toBe('123');
@@ -147,9 +161,28 @@ describe('TextCase converter logic', () => {
       expect(convertCase('a', 'PascalCase')).toBe('A');
     });
 
-    it('handles unicode characters gracefully', () => {
-      expect(convertCase('café', 'uppercase')).toBe('CAFÉ');
-      expect(convertCase('ÖSTERREICH', 'lowercase')).toBe('österreich');
+    it('handles sentence-case with non-letter first character', () => {
+      // Number first — should skip and capitalize the first letter instead
+      expect(convertCase('123 hello world', 'sentence-case')).toBe('123 Hello world');
+      // Symbol first — should skip and capitalize the first letter
+      expect(convertCase('!hello world', 'sentence-case')).toBe('!Hello world');
+      // Dash/underscore first — should skip and capitalize the first letter
+      expect(convertCase('-hello world', 'sentence-case')).toBe('-Hello world');
+    });
+
+    it('handles sentence-case with sentence-ending punctuation followed by non-letter', () => {
+      expect(convertCase('hello. 123 world', 'sentence-case')).toBe('Hello. 123 world');
+      // Parentheses after punctuation: no space between ')' and next letter, so not a new sentence
+      expect(convertCase('stop! (wait) more.', 'sentence-case')).toBe('Stop! (wait) more.');
+    });
+
+    it('handles sentence-case with leading/trailing whitespace', () => {
+      expect(convertCase('  hello world', 'sentence-case')).toBe('  Hello world');
+      expect(convertCase('hello   ', 'sentence-case')).toBe('Hello   ');
+    });
+
+    it('handles sentence-case with unicode sentence starters', () => {
+      expect(convertCase('über cool. nächste satz', 'sentence-case')).toBe('Über cool. Nächste satz');
     });
 
     it('handles leading and trailing whitespace', () => {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { convertCase, getModeLabel, getModeDescription } from '../lib/case-converter';
 import type { TextCaseState } from '../types';
 
+/** Props for the ToolCanvas component. */
 interface ToolCanvasProps {
   state: TextCaseState;
   canvasRef?: React.RefObject<HTMLDivElement | null>;
@@ -99,7 +100,12 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
       </div>
 
       {/* Mode indicator */}
-      <div className="mode-indicator">
+      <div
+        className="mode-indicator"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         <span className="mode-badge" title={getModeDescription(state.mode)}>
           {getModeLabel(state.mode)}
         </span>

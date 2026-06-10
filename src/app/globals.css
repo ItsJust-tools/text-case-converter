@@ -379,7 +379,7 @@ body {
   white-space: pre-wrap;
   word-break: break-all;
   cursor: pointer;
-  user-select: all;
+  user-select: text;
   transition: border-color 0.15s;
 }
 

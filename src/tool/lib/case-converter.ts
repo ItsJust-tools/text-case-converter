@@ -8,8 +8,8 @@ import type { CaseMode } from '../types';
  * @returns The converted text, or an empty string if input is empty.
  */
 export function convertCase(input: string, mode: CaseMode): string {
+  // Fast-path: no input to convert
   if (!input) return '';
-
   switch (mode) {
     case 'lowercase':
       return input.toLowerCase();
@@ -81,6 +81,7 @@ const MINOR_WORDS = new Set([
 /**
  * Capitalizes the first letter of each word while preserving whitespace.
  * Words are split on whitespace boundaries; spacing tokens are kept intact.
+ * Note: uses Unicode-aware regex, so accented characters are handled correctly.
  *
  * @param input - The text to capitalize.
  * @returns The text with each word's first letter uppercased and the rest lowercased.
@@ -99,6 +100,7 @@ function capitalizeWords(input: string): string {
 /**
  * Converts text to Title Case: major words capitalized, minor words lowercase
  * (unless they are the first or last word).
+ * Handles leading/trailing whitespace and preserves multiple-space runs.
  *
  * @param input - The text to convert.
  * @returns The title-cased text.
@@ -126,6 +128,8 @@ function titleCase(input: string): string {
 /**
  * Converts text to sentence case: first word capitalized, rest lowercase.
  * Preserves sentence boundaries (period, exclamation, question mark).
+ * If the first character is not a letter (e.g. digit or symbol), it is left
+ * unchanged and the first letter after it is capitalized instead.
  *
  * @param input - The text to convert.
  * @returns The sentence-cased text.
@@ -134,7 +138,12 @@ function toSentenceCase(input: string): string {
   // First lowercase everything
   let result = input.toLowerCase();
   // Capitalize first letter of the string (Unicode-aware)
-  result = result.replace(/^\p{L}/u, (first) => first.toUpperCase());
+  // If the first character isn't a letter (e.g. number, symbol), leave it and
+  // capitalize the first subsequent letter instead
+  result = result.replace(/^\P{L}*\p{L}/u, (match) => {
+    const letters = match;
+    return letters.slice(0, -1) + letters.slice(-1).toUpperCase();
+  });
   // Capitalize first letter after sentence-ending punctuation (Unicode-aware)
   result = result.replace(
     /([.!?]\s*)(\p{L})/gu,
@@ -150,9 +159,10 @@ function toSentenceCase(input: string): string {
  * Handles mixed input (space, hyphen, underscore, or camelCase-delimited) and
  * splits on letter↔digit boundaries so that "hello2world" becomes
  * ["hello", "2", "world"] for predictable code-style conversions.
+ * This is Unicode-aware: accented characters and non-Latin scripts are supported.
  *
  * @param input - The text to split.
- * @returns An array of individual word strings.
+ * @returns An array of individual word strings (may be empty if input is empty).
  */
 function splitWords(input: string): string[] {
   // First normalize separators to spaces
