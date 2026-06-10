@@ -163,6 +163,22 @@ describe('TextCase converter logic', () => {
       expect(convertCase('foo_BAR-baz', 'snake_case')).toBe('foo_bar_baz');
     });
 
+    it('splits on letter-to-digit boundaries for code-style conversions', () => {
+      expect(convertCase('hello2world', 'camelCase')).toBe('hello2World');
+      expect(convertCase('hello2world', 'PascalCase')).toBe('Hello2World');
+      expect(convertCase('hello2world', 'snake_case')).toBe('hello_2_world');
+      expect(convertCase('hello2world', 'kebab-case')).toBe('hello-2-world');
+      expect(convertCase('version1point5', 'camelCase')).toBe('version1Point5');
+      expect(convertCase('abc123def', 'snake_case')).toBe('abc_123_def');
+    });
+
+    it('handles surrogate pairs (emoji) in alternating and inverse case', () => {
+      // Emoji should be preserved as-is in alternating case
+      expect(convertCase('a😀b', 'alternating')).toBe('a😀B');
+      // Emoji should be preserved as-is in inverse case
+      expect(convertCase('a😀b', 'inverse')).toBe('A😀B');
+    });
+
     it('defaults to returning input for unknown mode', () => {
       expect(convertCase('test', 'invalid-mode' as CaseMode)).toBe('test');
     });

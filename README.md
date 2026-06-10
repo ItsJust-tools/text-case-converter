@@ -44,6 +44,10 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 | alternating          | hello world         | hElLo wOrLd         |
 | inverse              | Hello World         | hELLO wORLD         |
 
+> **Note:** Code-style conversions (camelCase, PascalCase, snake_case, etc.)
+> automatically split on letter↔digit boundaries. For example,
+> `hello2world` becomes `hello2World` in camelCase and `hello_2_world` in snake_case.
+
 ## Getting Started
 
 ```bash

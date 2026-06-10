@@ -144,8 +144,12 @@ function toSentenceCase(input: string): string {
 }
 
 /**
- * Splits input into words by spaces, underscores, hyphens, or camelCase boundaries.
- * Preserves digits attached to words (e.g. "hello2world" splits to ["hello2", "world"]).
+ * Splits input into words by spaces, underscores, hyphens, camelCase boundaries,
+ * or transitions between letters and digits.
+ *
+ * Handles mixed input (space, hyphen, underscore, or camelCase-delimited) and
+ * splits on letter↔digit boundaries so that "hello2world" becomes
+ * ["hello", "2", "world"] for predictable code-style conversions.
  *
  * @param input - The text to split.
  * @returns An array of individual word strings.
@@ -155,7 +159,10 @@ function splitWords(input: string): string[] {
   const normalized = input
     .replace(/[-_.]+/g, ' ')
     .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    // Split on letter↔digit boundaries (e.g. "hello2world" → "hello 2 world")
+    .replace(/(\p{L})(\d)/gu, '$1 $2')
+    .replace(/(\d)(\p{L})/gu, '$1 $2');
   return normalized.split(/\s+/).filter(Boolean);
 }
 
@@ -281,14 +288,14 @@ function toFlatCase(input: string): string {
  * Converts text to alternating case (aLtErNaTiNg): even-letter-indexed letters
  * are lowercase, odd-letter-indexed letters are uppercase.
  * Non-alphabetic characters are preserved as-is and do NOT advance the alternation.
+ * Handles Unicode surrogate pairs (emoji, non-BMP characters) correctly.
  *
  * @param input - The text to convert.
  * @returns The alternating-cased string.
  */
 function toAlternatingCase(input: string): string {
   let letterIndex = 0;
-  return input
-    .split('')
+  return Array.from(input)
     .map((char) => {
       const lower = char.toLowerCase();
       const upper = char.toUpperCase();
@@ -306,13 +313,13 @@ function toAlternatingCase(input: string): string {
  * Converts text to inverse case: all uppercase letters become lowercase,
  * all lowercase letters become uppercase. Non-alphabetic characters are unchanged.
  * Supports Unicode letters (e.g. café -> CAFÉ) via locale-independent comparison.
+ * Handles Unicode surrogate pairs (emoji, non-BMP characters) correctly.
  *
  * @param input - The text to convert.
  * @returns The inverse-cased string.
  */
 function toInverseCase(input: string): string {
-  return input
-    .split('')
+  return Array.from(input)
     .map((char) => {
       const lower = char.toLowerCase();
       const upper = char.toUpperCase();
