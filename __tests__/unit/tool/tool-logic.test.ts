@@ -3,6 +3,7 @@ import { createMockToolState } from '@itsjust/core/testing';
 import { textCaseTool } from '@/tool/tool-definition';
 import {
   convertCase,
+  convertCaseLines,
   getModeDescription,
   getModeLabel,
   MODE_GROUPS,
@@ -353,6 +354,62 @@ describe('TextCase converter logic', () => {
       expect(convertCase('hello world-', 'PascalCase')).toBe('HelloWorld');
       expect(convertCase('hello world_', 'snake_case')).toBe('hello_world');
       expect(convertCase('-hello world', 'camelCase')).toBe('helloWorld');
+    });
+  });
+
+  describe('convertCaseLines', () => {
+    it('returns empty string for empty input', () => {
+      expect(convertCaseLines('', 'lowercase', false)).toBe('');
+      expect(convertCaseLines('', 'uppercase', true)).toBe('');
+    });
+
+    it('converts without line-by-line mode (same as convertCase)', () => {
+      expect(convertCaseLines('Hello World', 'lowercase', false)).toBe('hello world');
+      expect(convertCaseLines('hello world', 'uppercase', false)).toBe('HELLO WORLD');
+      expect(convertCaseLines('hello world', 'camelCase', false)).toBe('helloWorld');
+    });
+
+    it('converts each line independently in line-by-line mode', () => {
+      expect(convertCaseLines('hello world\nfoo bar', 'uppercase', true)).toBe(
+        'HELLO WORLD\nFOO BAR'
+      );
+      expect(convertCaseLines('Hello World\nFoo Bar', 'lowercase', true)).toBe(
+        'hello world\nfoo bar'
+      );
+    });
+
+    it('preserves trailing newline in line-by-line mode', () => {
+      expect(convertCaseLines('hello\nworld\n', 'uppercase', true)).toBe('HELLO\nWORLD\n');
+    });
+
+    it('handles single line in line-by-line mode', () => {
+      expect(convertCaseLines('hello world', 'uppercase', true)).toBe('HELLO WORLD');
+    });
+
+    it('preserves empty lines in line-by-line mode', () => {
+      expect(convertCaseLines('hello\n\nworld', 'uppercase', true)).toBe('HELLO\n\nWORLD');
+    });
+
+    it('applies sentence-case per line in line-by-line mode', () => {
+      expect(convertCaseLines('hello world\nfoo bar', 'sentence-case', true)).toBe(
+        'Hello world\nFoo bar'
+      );
+    });
+
+    it('applies capitalize per line in line-by-line mode', () => {
+      expect(convertCaseLines('hello world\nfoo bar', 'capitalize', true)).toBe(
+        'Hello World\nFoo Bar'
+      );
+    });
+
+    it('handles mixed separators in line-by-line mode', () => {
+      expect(convertCaseLines('hello-world\nfoo_bar', 'camelCase', true)).toBe(
+        'helloWorld\nfooBar'
+      );
+    });
+
+    it('handles leading/trailing whitespace per line', () => {
+      expect(convertCaseLines('  hello\nworld  ', 'uppercase', true)).toBe('  HELLO\nWORLD  ');
     });
   });
 });

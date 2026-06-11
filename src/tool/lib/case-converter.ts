@@ -140,10 +140,10 @@ function toSentenceCase(input: string): string {
   // Capitalize first letter of the string (Unicode-aware)
   // If the first character isn't a letter (e.g. number, symbol), leave it and
   // capitalize the first subsequent letter instead
-  result = result.replace(/^\P{L}*\p{L}/u, (match) => {
-    const letters = match;
-    return letters.slice(0, -1) + letters.slice(-1).toUpperCase();
-  });
+  result = result.replace(
+    /^\P{L}*\p{L}/u,
+    (match) => match.slice(0, -1) + match.slice(-1).toUpperCase()
+  );
   // Capitalize first letter after sentence-ending punctuation (Unicode-aware)
   result = result.replace(
     /([.!?]\s*)(\p{L})/gu,
@@ -351,12 +351,10 @@ function toInverseCase(input: string): string {
 export function convertCaseLines(input: string, mode: CaseMode, lineByLine: boolean): string {
   if (!input) return '';
   if (!lineByLine) return convertCase(input, mode);
-  // Preserve trailing newline if present — split with -1 to keep trailing empty entries
-  const trailingNewline = input.endsWith('\n');
+  // Preserve trailing newline if present — split keeps trailing empty entries
   const lines = input.split('\n');
   const converted = lines.map((line) => convertCase(line, mode));
-  const result = converted.join('\n');
-  return trailingNewline ? result + '\n' : result;
+  return converted.join('\n');
 }
 
 /**
