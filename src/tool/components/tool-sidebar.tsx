@@ -66,6 +66,23 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
         </button>
       </div>
 
+      {/* Line-by-line mode toggle */}
+      <div className="sidebar-section">
+        <h3>Processing</h3>
+        <label
+          className="toggle-row"
+          title="When enabled, each line of multi-line text is converted independently"
+        >
+          <input
+            type="checkbox"
+            className="toggle-input"
+            checked={state.lineByLine}
+            onChange={(e) => onChange({ lineByLine: e.target.checked })}
+          />
+          <span className="toggle-label">Line-by-line mode</span>
+        </label>
+      </div>
+
       {/* Stats */}
       <div className="sidebar-section">
         <h3>Statistics</h3>

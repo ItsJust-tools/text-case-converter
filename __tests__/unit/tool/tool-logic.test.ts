@@ -454,6 +454,7 @@ describe('createMockToolState with TextCaseState', () => {
       showOutput: true,
       autoCopy: false,
       lastOutput: '',
+      lineByLine: false,
     });
     expect(state.data.input).toBe('');
     expect(state.data.mode).toBe('lowercase');
@@ -466,6 +467,7 @@ describe('createMockToolState with TextCaseState', () => {
       showOutput: true,
       autoCopy: false,
       lastOutput: '',
+      lineByLine: false,
     });
     state.setData((prev) => ({ ...prev, input: 'Hello World' }));
     expect(state.data.input).toBe('Hello World');
@@ -478,6 +480,7 @@ describe('createMockToolState with TextCaseState', () => {
       showOutput: true,
       autoCopy: false,
       lastOutput: '',
+      lineByLine: false,
     });
     expect(trainState.data.mode).toBe('train-case');
 
@@ -487,6 +490,7 @@ describe('createMockToolState with TextCaseState', () => {
       showOutput: true,
       autoCopy: false,
       lastOutput: '',
+      lineByLine: false,
     });
     expect(sentenceState.data.mode).toBe('sentence-case');
   });

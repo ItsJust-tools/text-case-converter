@@ -40,7 +40,8 @@ function isTextCaseState(value: unknown): value is TextCaseState {
     VALID_MODES.includes(v.mode as CaseMode) &&
     (v.showOutput === undefined || typeof v.showOutput === 'boolean') &&
     (v.autoCopy === undefined || typeof v.autoCopy === 'boolean') &&
-    (v.lastOutput === undefined || typeof v.lastOutput === 'string')
+    (v.lastOutput === undefined || typeof v.lastOutput === 'string') &&
+    (v.lineByLine === undefined || typeof v.lineByLine === 'boolean')
   );
 }
 
@@ -59,6 +60,7 @@ export const textCaseTool: Tool<TextCaseState> = {
     showOutput: true,
     autoCopy: false,
     lastOutput: '',
+    lineByLine: false,
   },
   serialize: (state) =>
     JSON.stringify(
@@ -68,6 +70,7 @@ export const textCaseTool: Tool<TextCaseState> = {
         showOutput: state.showOutput,
         autoCopy: state.autoCopy,
         lastOutput: state.lastOutput,
+        lineByLine: state.lineByLine,
       },
       null,
       2
@@ -82,6 +85,7 @@ export const textCaseTool: Tool<TextCaseState> = {
           showOutput: data.showOutput ?? true,
           autoCopy: data.autoCopy ?? false,
           lastOutput: data.lastOutput ?? '',
+          lineByLine: data.lineByLine ?? false,
         },
       };
     }

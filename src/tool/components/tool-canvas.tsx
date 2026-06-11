@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { convertCase, getModeLabel, getModeDescription } from '../lib/case-converter';
+import { convertCaseLines, getModeLabel, getModeDescription } from '../lib/case-converter';
 import type { TextCaseState } from '../types';
 
 /** Props for the ToolCanvas component. */
@@ -29,11 +29,11 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
     const trimmed = state.input.trim();
     if (!trimmed) return '';
     try {
-      return convertCase(state.input, state.mode);
+      return convertCaseLines(state.input, state.mode, state.lineByLine);
     } catch {
       return '(conversion error)';
     }
-  }, [state.input, state.mode]);
+  }, [state.input, state.mode, state.lineByLine]);
 
   // Auto-resize the textarea on input change
   useEffect(() => {
@@ -106,6 +106,12 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
       </div>
 
       {/* Mode indicator */}
+      {state.lineByLine && (
+        <div className="line-mode-indicator" role="status" aria-live="polite" aria-atomic="true">
+          <span className="line-mode-badge">Line-by-line</span>
+          <span className="line-mode-desc">Each line is converted independently</span>
+        </div>
+      )}
       <div className="mode-indicator" role="status" aria-live="polite" aria-atomic="true">
         <span className="mode-badge" title={getModeDescription(state.mode)}>
           {getModeLabel(state.mode)}

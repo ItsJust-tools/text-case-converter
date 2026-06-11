@@ -11,7 +11,7 @@ import {
   ALL_VALID_MODES,
 } from '@/tool';
 import { ToolShell, useTool } from '@itsjust/core';
-import { convertCase } from '@/tool/lib/case-converter';
+import { convertCaseLines } from '@/tool/lib/case-converter';
 import type { TextCaseState } from '@/tool/types';
 
 /**
@@ -71,7 +71,7 @@ export default function ToolClient() {
         if ('input' in patch || 'mode' in patch) {
           const trimmed = next.input.trim();
           if (trimmed) {
-            next.lastOutput = convertCase(next.input, next.mode);
+            next.lastOutput = convertCaseLines(next.input, next.mode, next.lineByLine);
           }
         }
         return next;
@@ -85,12 +85,12 @@ export default function ToolClient() {
    * caches the result in lastOutput and shows a success toast.
    */
   const handleConvert = useCallback(() => {
-    const { input, mode } = tool.state.data;
+    const { input, mode, lineByLine } = tool.state.data;
     if (!input.trim()) {
       showToast('No text to convert', 'error');
       return;
     }
-    const output = convertCase(input, mode);
+    const output = convertCaseLines(input, mode, lineByLine);
     setToolData((prev) => ({ ...prev, lastOutput: output }));
     showToast(`Converted to ${mode}`, 'success');
   }, [tool.state.data, setToolData, showToast]);
@@ -112,12 +112,12 @@ export default function ToolClient() {
    * to stay consistent with the real-time preview in the canvas.
    */
   const handleCopyOutput = useCallback(async () => {
-    const { input, mode } = tool.state.data;
+    const { input, mode, lineByLine } = tool.state.data;
     if (!input.trim()) {
       showToast('Nothing to copy', 'error');
       return;
     }
-    const output = convertCase(input, mode);
+    const output = convertCaseLines(input, mode, lineByLine);
     setToolData((prev) => ({ ...prev, lastOutput: output }));
     try {
       await navigator.clipboard.writeText(output);
@@ -131,7 +131,13 @@ export default function ToolClient() {
    * Resets the tool to its initial state (empty input, lowercase mode).
    */
   const handleResetState = useCallback(() => {
-    setToolData((prev) => ({ ...prev, input: '', mode: 'lowercase' as const, lastOutput: '' }));
+    setToolData((prev) => ({
+      ...prev,
+      input: '',
+      mode: 'lowercase' as const,
+      lastOutput: '',
+      lineByLine: false,
+    }));
     showToast('Reset', 'success');
   }, [setToolData, showToast]);
 

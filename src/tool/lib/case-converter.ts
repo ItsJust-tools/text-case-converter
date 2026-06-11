@@ -45,7 +45,7 @@ export function convertCase(input: string, mode: CaseMode): string {
       return toInverseCase(input);
     default:
       // Exhaustiveness guard: if TypeScript complains here, a CaseMode is unhandled
-      const _exhaustiveCheck: never = mode;
+      mode satisfies never;
       return input;
   }
 }
@@ -337,6 +337,26 @@ function toInverseCase(input: string): string {
       return char === lower ? upper : lower;
     })
     .join('');
+}
+
+/**
+ * Converts text according to the specified case mode, processing each line
+ * independently when {@link lineByLine} is true. Empty lines are preserved.
+ *
+ * @param input - The text to convert.
+ * @param mode - The case transformation mode to apply.
+ * @param lineByLine - When true, each line is converted independently.
+ * @returns The converted text, or an empty string if input is empty.
+ */
+export function convertCaseLines(input: string, mode: CaseMode, lineByLine: boolean): string {
+  if (!input) return '';
+  if (!lineByLine) return convertCase(input, mode);
+  // Preserve trailing newline if present — split with -1 to keep trailing empty entries
+  const trailingNewline = input.endsWith('\n');
+  const lines = input.split('\n');
+  const converted = lines.map((line) => convertCase(line, mode));
+  const result = converted.join('\n');
+  return trailingNewline ? result + '\n' : result;
 }
 
 /**

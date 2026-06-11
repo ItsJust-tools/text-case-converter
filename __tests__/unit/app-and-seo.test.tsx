@@ -96,6 +96,7 @@ describe('app and seo', () => {
       showOutput: true,
       autoCopy: false,
       lastOutput: '',
+      lineByLine: false,
     });
     expect(serialized).toContain('"input": "Hello"');
     expect(serialized).toContain('"mode": "uppercase"');
@@ -123,6 +124,7 @@ describe('app and seo', () => {
       showOutput: true,
       autoCopy: false,
       lastOutput: '',
+      lineByLine: false,
     };
     const onChangeMock = vi.fn();
     const onConvertMock = vi.fn();

@@ -33,4 +33,6 @@ export interface TextCaseState {
   autoCopy: boolean;
   /** Recently transformed output (cached for copy) */
   lastOutput: string;
+  /** When enabled, multi-line input is processed line-by-line instead of as a whole */
+  lineByLine: boolean;
 }
