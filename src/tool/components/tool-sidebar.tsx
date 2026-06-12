@@ -8,9 +8,17 @@ interface ToolSidebarProps {
   state: TextCaseState;
   onChange: (patch: Partial<TextCaseState>) => void;
   onConvert: () => void;
+  onSwap?: () => void;
+  onCopyOutputToInput?: () => void;
 }
 
-export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
+export function ToolSidebar({
+  state,
+  onChange,
+  onConvert,
+  onSwap,
+  onCopyOutputToInput,
+}: ToolSidebarProps) {
   const handleModeSelect = useCallback(
     (mode: CaseMode) => {
       onChange({ mode });
@@ -30,7 +38,8 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
     if (!state.input.trim()) return;
     const output = convertCaseLines(state.input, state.mode, state.lineByLine);
     onChange({ input: output, lastOutput: '' });
-  }, [state.input, state.mode, state.lineByLine, onChange]);
+    onSwap?.();
+  }, [state.input, state.mode, state.lineByLine, onChange, onSwap]);
 
   /**
    * Copies the converted output back to the input, preserving the current
@@ -40,7 +49,8 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
     if (!state.input.trim()) return;
     const output = convertCaseLines(state.input, state.mode, state.lineByLine);
     onChange({ input: output });
-  }, [state.input, state.mode, state.lineByLine, onChange]);
+    onCopyOutputToInput?.();
+  }, [state.input, state.mode, state.lineByLine, onChange, onCopyOutputToInput]);
 
   const wordCount = useMemo(
     () => (state.input.trim() ? state.input.trim().split(/\s+/).length : 0),

@@ -26,6 +26,7 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
   - `Ctrl+Shift+C` — Copy output to clipboard
   - `Ctrl+Shift+R` — Clear input and reset
   - `Ctrl+Shift+T` — Cycle through case modes
+- **Undo/Redo:** use `Ctrl+Z` / `Ctrl+Shift+Z` to revert or reapply text changes
 - **Dark mode:** automatic system preference or manual toggle
 - **High contrast mode:** accessible theme for better readability
 - **Privacy-first:** 100% client-side — nothing is sent to any server

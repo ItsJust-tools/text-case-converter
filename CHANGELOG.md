@@ -1,6 +1,22 @@
 # Changelog
 
-## [1.2.0] — 2026-06-08
+## [1.2.0] — 2026-06-12
+
+### Added
+
+- **Undo/Redo support**: enabled in tool config with `features.undoRedo: true`.
+  Users can now use `Ctrl+Z` / `Ctrl+Shift+Z` to revert or reapply text changes.
+- **Export feature enabled**: JSON export dropdown is now available in the toolbar
+  (previously disabled despite `exportFormats` listing JSON).
+- **Toast feedback for sidebar actions**: Swap Output → Input and Copy Output to
+  Input now show a success toast when triggered.
+
+### Changed
+
+- Updated `tool.config.ts` version to `1.2.0`.
+- Bumped `package.json` version to `1.2.0`.
+
+## [1.1.1] — 2026-06-08
 
 ### Fixed
 

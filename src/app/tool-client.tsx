@@ -192,7 +192,13 @@ export default function ToolClient() {
   );
 
   const sidebarContent = (
-    <ToolSidebar state={tool.state.data} onChange={handleStateChange} onConvert={handleConvert} />
+    <ToolSidebar
+      state={tool.state.data}
+      onChange={handleStateChange}
+      onConvert={handleConvert}
+      onSwap={() => showToast('Input replaced with converted output', 'success')}
+      onCopyOutputToInput={() => showToast('Output copied to input', 'success')}
+    />
   );
 
   const canvasContent = (
