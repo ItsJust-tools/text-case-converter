@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { MODE_GROUPS, getModeDescription } from '../lib/case-converter';
+import { MODE_GROUPS, getModeDescription, convertCaseLines } from '../lib/case-converter';
 import type { TextCaseState, CaseMode } from '../types';
 
 interface ToolSidebarProps {
@@ -21,6 +21,26 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
   const handleClear = useCallback(() => {
     onChange({ input: '', lastOutput: '' });
   }, [onChange]);
+
+  /**
+   * Swaps the output back into the input, allowing chained transformations.
+   * Converts the current input, then uses that as the new input value.
+   */
+  const handleSwap = useCallback(() => {
+    if (!state.input.trim()) return;
+    const output = convertCaseLines(state.input, state.mode, state.lineByLine);
+    onChange({ input: output, lastOutput: '' });
+  }, [state.input, state.mode, state.lineByLine, onChange]);
+
+  /**
+   * Copies the converted output back to the input, preserving the current
+   * output for reference.
+   */
+  const handleCopyOutputToInput = useCallback(() => {
+    if (!state.input.trim()) return;
+    const output = convertCaseLines(state.input, state.mode, state.lineByLine);
+    onChange({ input: output });
+  }, [state.input, state.mode, state.lineByLine, onChange]);
 
   const wordCount = useMemo(
     () => (state.input.trim() ? state.input.trim().split(/\s+/).length : 0),
@@ -119,6 +139,26 @@ export function ToolSidebar({ state, onChange, onConvert }: ToolSidebarProps) {
           aria-label="Clear input"
         >
           Clear Input
+        </button>
+        <button
+          type="button"
+          className="swap-btn"
+          onClick={handleSwap}
+          disabled={!state.input.trim()}
+          aria-label="Swap output to input"
+          title="Replace input with converted output (chain transformations)"
+        >
+          Swap Output → Input
+        </button>
+        <button
+          type="button"
+          className="swap-btn swap-btn--alt"
+          onClick={handleCopyOutputToInput}
+          disabled={!state.input.trim()}
+          aria-label="Copy output to input"
+          title="Copy the converted output into the input field"
+        >
+          Copy Output to Input
         </button>
       </div>
 

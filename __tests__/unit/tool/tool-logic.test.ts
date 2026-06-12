@@ -552,3 +552,72 @@ describe('createMockToolState with TextCaseState', () => {
     expect(sentenceState.data.mode).toBe('sentence-case');
   });
 });
+
+describe('Swap input/output workflow', () => {
+  it('swap replaces input with converted output (snake_case to camelCase chain)', () => {
+    // Simulate a user swapping: convert input, then use result as new input
+    let input = 'hello_world_example';
+    let mode: CaseMode = 'camelCase';
+
+    // First conversion
+    let output = convertCaseLines(input, mode, false);
+    expect(output).toBe('helloWorldExample');
+
+    // Swap: replace input with output
+    input = output;
+
+    // Change mode and convert again
+    mode = 'PascalCase';
+    output = convertCaseLines(input, mode, false);
+    expect(output).toBe('HelloWorldExample');
+
+    // Swap again
+    input = output;
+
+    // Convert to screaming snake case
+    mode = 'SCREAMING_SNAKE_CASE';
+    output = convertCaseLines(input, mode, false);
+    expect(output).toBe('HELLO_WORLD_EXAMPLE');
+  });
+
+  it('copy output to input preserves output for reference', () => {
+    let input = 'hello world';
+    const mode: CaseMode = 'title-case';
+
+    // Convert
+    const output = convertCaseLines(input, mode, false);
+    expect(output).toBe('Hello World');
+
+    // Copy output to input (original output preserved for reference)
+    const previousOutput = output;
+    input = output;
+
+    // Change to alternating case
+    const newOutput = convertCaseLines(input, 'alternating', false);
+    expect(newOutput).toBe('hElLo WoRlD');
+
+    // Previous output is still accessible
+    expect(previousOutput).toBe('Hello World');
+  });
+
+  it('swap handles empty input gracefully', () => {
+    const output = convertCaseLines('', 'uppercase', false);
+    expect(output).toBe('');
+  });
+
+  it('swap chain with line-by-line mode', () => {
+    let input = 'hello world\nfoo bar';
+    let mode: CaseMode = 'uppercase';
+
+    let output = convertCaseLines(input, mode, true);
+    expect(output).toBe('HELLO WORLD\nFOO BAR');
+
+    // Swap
+    input = output;
+
+    // Convert to lowercase
+    mode = 'lowercase';
+    output = convertCaseLines(input, mode, true);
+    expect(output).toBe('hello world\nfoo bar');
+  });
+});

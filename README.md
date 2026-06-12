@@ -16,6 +16,8 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 - **16 case modes:** lowercase, UPPERCASE, capitalize, Title Case, Sentence case, camelCase, PascalCase, snake_case, SCREAMING_SNAKE_CASE, kebab-case, Train-Case, SCREAMING-KEBAB-CASE, dot.case, flatcase, alternating case, and inverse case
 - **Real-time preview:** output updates automatically as you type or select a new mode — no button press needed
 - **One-click copy:** click the output area or Copy button to grab transformed text instantly
+- **Swap Output → Input:** replace the input with the converted output for chained transformations in a different case mode
+- **Copy Output to Input:** copy converted text back to the input field (without clearing the output)
 - **Live statistics:** word count, character count, and line count update in real-time in the sidebar
 - **Output word count:** the preview pane also tracks word count of the converted text
 - **Smart case cycling:** use `Ctrl+Shift+T` to cycle through all 16 case modes and preview each one in real-time
