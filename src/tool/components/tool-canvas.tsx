@@ -9,6 +9,8 @@ interface ToolCanvasProps {
   state: TextCaseState;
   canvasRef?: React.RefObject<HTMLDivElement | null>;
   onChange: (patch: Partial<TextCaseState>) => void;
+  /** Optional callback invoked after a successful copy to clipboard. */
+  onCopy?: () => void;
 }
 
 /**
@@ -20,7 +22,7 @@ function autoResizeTextarea(el: HTMLTextAreaElement | null): void {
   el.style.height = `${Math.max(el.scrollHeight, 120)}px`;
 }
 
-export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
+export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasProps) {
   const [copied, setCopied] = useState(false);
   const [copyAnimating, setCopyAnimating] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -53,6 +55,7 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
       await navigator.clipboard.writeText(output);
       // Sync lastOutput so keyboard shortcuts and exports use the latest result
       onChange({ lastOutput: output });
+      onCopy?.();
       setCopied(true);
       setCopyAnimating(true);
       setTimeout(() => {
@@ -60,9 +63,9 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
         setCopyAnimating(false);
       }, 2000);
     } catch {
-      // Clipboard unavailable
+      // Clipboard unavailable — silently fail, the button remains enabled
     }
-  }, [output, onChange]);
+  }, [output, onChange, onCopy]);
 
   const chars = state.input.length;
   const outputChars = output.length;
@@ -144,9 +147,8 @@ export function ToolCanvas({ state, canvasRef, onChange }: ToolCanvasProps) {
         </div>
         <div
           className={`case-output${copyAnimating ? ' case-output--copied' : ''}`}
-          aria-label="Converted output"
-          role="textbox"
-          aria-readonly="true"
+          aria-label="Converted output — click to copy"
+          role="region"
           aria-live="polite"
           tabIndex={0}
           onClick={handleCopy}

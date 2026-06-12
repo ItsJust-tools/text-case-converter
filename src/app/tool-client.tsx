@@ -196,7 +196,12 @@ export default function ToolClient() {
   );
 
   const canvasContent = (
-    <ToolCanvas state={tool.state.data} canvasRef={canvasRef} onChange={handleStateChange} />
+    <ToolCanvas
+      state={tool.state.data}
+      canvasRef={canvasRef}
+      onChange={handleStateChange}
+      onCopy={() => showToast('Copied to clipboard', 'success')}
+    />
   );
 
   const statusBarContent = (
