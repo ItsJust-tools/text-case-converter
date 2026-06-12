@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.3.0] — 2026-06-12
+
+### Added
+
+- **Diff summary styling**: the character/word difference badge between input and
+  output now has visible styling (accent-colored pill background) instead of
+  appearing as unstyled text.
+- **Mobile-responsive layout**: textarea and output panels now use a smaller
+  `min-height: 80px` on screens narrower than `640px`. The mode description
+  text is hidden on small screens to save space, and canvas padding is reduced.
+
+### Changed
+
+- **Output word-break**: changed from `break-all` (splits words mid-character)
+  to `break-word` for better readability when long words overflow.
+- Updated `tool.config.ts` version to `1.3.0`.
+- Bumped `package.json` version to `1.3.0`.
+
+### Documentation
+
+- Added JSDoc to `autoResizeTextarea`, `handleInputChange`, and `handleCopy`
+  in `tool-canvas.tsx` for improved developer experience.
+
 ## [1.2.0] — 2026-06-12
 
 ### Added

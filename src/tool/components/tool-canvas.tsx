@@ -14,7 +14,11 @@ interface ToolCanvasProps {
 }
 
 /**
- * Auto-resize a textarea to match its content height.
+ * Auto-resizes a textarea element to match its content height.
+ * Resets height first to get the correct scrollHeight, then sets the height
+ * to the larger of scrollHeight and the configured minimum.
+ *
+ * @param el - The textarea element to resize, or null.
  */
 function autoResizeTextarea(el: HTMLTextAreaElement | null): void {
   if (!el) return;
@@ -42,6 +46,10 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
     autoResizeTextarea(textareaRef.current);
   }, [state.input]);
 
+  /**
+   * Handles changes to the input textarea value,
+   * passing the new value to the parent handler.
+   */
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       onChange({ input: e.target.value });
@@ -49,6 +57,12 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
     [onChange]
   );
 
+  /**
+   * Copies the current output text to the system clipboard.
+   * Updates lastOutput for keyboard shortcut consistency,
+   * shows a brief "Copied!" animation, and invokes the optional
+   * onCopy callback for toast feedback.
+   */
   const handleCopy = useCallback(async () => {
     if (!output) return;
     try {
@@ -70,12 +84,33 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
   const chars = state.input.length;
   const outputChars = output.length;
   const trimmed = state.input.trim();
-  const wordCount = useMemo(() => (trimmed ? trimmed.split(/\s+/).length : 0), [trimmed]);
-  const outputWordCount = useMemo(() => {
+  const [wordCount, outputWordCount] = useMemo(() => {
+    const iwc = trimmed ? trimmed.split(/\s+/).length : 0;
     const trimmedOutput = output.trim();
-    return trimmedOutput ? trimmedOutput.split(/\s+/).length : 0;
-  }, [output]);
+    const owc = trimmedOutput ? trimmedOutput.split(/\s+/).length : 0;
+    return [iwc, owc];
+  }, [trimmed, output]);
   const inputLines = state.input ? state.input.split('\n').length : 0;
+
+  // Character/word difference between input and output
+  const diffSummary = useMemo(() => {
+    if (!output || chars === 0) return null;
+    const charDiff = outputChars - chars;
+    const wordDiff = outputWordCount - wordCount;
+    const parts: string[] = [];
+    if (charDiff !== 0) {
+      parts.push(
+        `${charDiff > 0 ? '+' : ''}${charDiff} char${Math.abs(charDiff) !== 1 ? 's' : ''}`
+      );
+    }
+    if (wordDiff !== 0) {
+      parts.push(
+        `${wordDiff > 0 ? '+' : ''}${wordDiff} word${Math.abs(wordDiff) !== 1 ? 's' : ''}`
+      );
+    }
+    if (parts.length === 0) return null;
+    return parts.join(', ');
+  }, [output, chars, outputChars, wordCount, outputWordCount]);
 
   return (
     <div
@@ -132,6 +167,11 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
               {outputChars} character{outputChars !== 1 ? 's' : ''} &middot; {outputWordCount} word
               {outputWordCount !== 1 ? 's' : ''}
             </span>
+            {diffSummary && (
+              <span className="diff-summary" title="Difference from input">
+                {diffSummary}
+              </span>
+            )}
             <button
               type="button"
               className={`copy-btn${copied ? ' is-copied' : ''}`}

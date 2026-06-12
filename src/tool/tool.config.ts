@@ -12,7 +12,7 @@ const toolConfig = {
   name: 'Text Case Converter',
   description:
     'Convert text between different cases — lowercase, UPPERCASE, Title Case, camelCase, snake_case, kebab-case, PascalCase, and more.',
-  version: '1.2.0',
+  version: '1.3.0',
   exportFormats: ['json'],
   features: {
     export: true,
