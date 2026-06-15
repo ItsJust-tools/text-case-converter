@@ -178,18 +178,19 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
               onClick={handleCopy}
               disabled={!output}
               aria-label={copied ? 'Copied to clipboard' : 'Copy output to clipboard'}
-              aria-live="polite"
               title="Copy to clipboard"
             >
               {copied ? '✓ Copied!' : 'Copy'}
             </button>
+            <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+              {copied ? 'Output copied to clipboard' : ''}
+            </span>
           </div>
         </div>
         <div
           className={`case-output${copyAnimating ? ' case-output--copied' : ''}`}
           aria-label="Converted output — click to copy"
-          role="region"
-          aria-live="polite"
+          role="button"
           tabIndex={0}
           onClick={handleCopy}
           onKeyDown={(e) => {

@@ -218,6 +218,14 @@ describe('TextCase converter logic', () => {
     it('defaults to returning input for unknown mode', () => {
       expect(convertCase('test', 'invalid-mode' as CaseMode)).toBe('test');
     });
+
+    it('preserves surrogate pairs (emoji) in all modes', () => {
+      const input = 'a😀b😎c';
+      expect(convertCase(input, 'lowercase')).toBe('a😀b😎c');
+      expect(convertCase(input, 'uppercase')).toBe('A😀B😎C');
+      expect(convertCase(input, 'camelCase')).toBe('a😀b😎c');
+      expect(convertCase(input, 'snake_case')).toBe('a😀b😎c');
+    });
   });
 
   describe('getModeDescription', () => {
@@ -355,6 +363,20 @@ describe('TextCase converter logic', () => {
       expect(convertCase('hello world_', 'snake_case')).toBe('hello_world');
       expect(convertCase('-hello world', 'camelCase')).toBe('helloWorld');
     });
+
+    it('handles only-separator input gracefully', () => {
+      expect(convertCase('---', 'camelCase')).toBe('');
+      expect(convertCase('___', 'PascalCase')).toBe('');
+      expect(convertCase('   ', 'snake_case')).toBe('');
+      expect(convertCase(' - _ ', 'kebab-case')).toBe('');
+    });
+
+    it('handles very long input without crashing', () => {
+      const long = 'hello world '.repeat(1000);
+      const result = convertCase(long, 'camelCase');
+      expect(result).toBeTruthy();
+      expect(result.length).toBeGreaterThan(0);
+    });
   });
 
   describe('convertCaseLines', () => {
@@ -410,6 +432,15 @@ describe('TextCase converter logic', () => {
 
     it('handles leading/trailing whitespace per line', () => {
       expect(convertCaseLines('  hello\nworld  ', 'uppercase', true)).toBe('  HELLO\nWORLD  ');
+    });
+
+    it('handles trailing newline in non-line-by-line mode', () => {
+      expect(convertCaseLines('hello\n', 'uppercase', false)).toBe('HELLO\n');
+    });
+
+    it('handles only-newline input', () => {
+      expect(convertCaseLines('\n\n', 'uppercase', true)).toBe('\n\n');
+      expect(convertCaseLines('\n\n', 'uppercase', false)).toBe('\n\n');
     });
   });
 });

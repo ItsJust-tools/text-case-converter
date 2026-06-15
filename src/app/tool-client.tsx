@@ -149,11 +149,16 @@ export default function ToolClient() {
    *
    * Input changes are debounced so rapid typing coalesces into a single
    * undo entry. Mode changes are pushed immediately.
+   *
+   * Uses a ref to capture the pre-update snapshot inside the setToolData
+   * callback, avoiding stale closure issues with tool.state.data.
    */
   const handleStateChange = useCallback(
     (patch: Partial<TextCaseState>) => {
-      const snapshot = { ...tool.state.data };
+      const snapshotRef = { current: null as TextCaseState | null };
       setToolData((prev) => {
+        // Capture snapshot before mutation
+        snapshotRef.current = { ...prev };
         const next = { ...prev, ...patch };
         // Keep lastOutput in sync whenever input or mode changes
         if ('input' in patch || 'mode' in patch) {
@@ -167,6 +172,8 @@ export default function ToolClient() {
       // Push undo snapshot after setToolData commits.
       // Using queueMicrotask to avoid side-effects inside the setter.
       queueMicrotask(() => {
+        const snapshot = snapshotRef.current;
+        if (!snapshot) return;
         if ('input' in patch) {
           pushUndoDebounced(snapshot);
         } else {
@@ -175,7 +182,7 @@ export default function ToolClient() {
         }
       });
     },
-    [tool.state.data, setToolData, pushUndo, pushUndoDebounced]
+    [setToolData, pushUndo, pushUndoDebounced]
   );
 
   /**
@@ -350,7 +357,7 @@ export default function ToolClient() {
       state={tool.state.data}
       onChange={handleStateChange}
       onConvert={handleConvert}
-      onSwap={() => showToast('Input replaced with converted output', 'success')}
+      onSwap={handleSwap}
       onCopyOutputToInput={() => showToast('Output copied to input', 'success')}
     />
   );
