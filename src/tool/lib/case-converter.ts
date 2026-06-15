@@ -7,42 +7,42 @@ import type { CaseMode } from '../types';
  * @param mode - The case transformation mode to apply.
  * @returns The converted text, or an empty string if input is empty.
  */
-export function convertCase(input: string, mode: CaseMode): string {
+export function convertCase(input: string, mode: CaseMode, locale?: string): string {
   // Fast-path: no input to convert
   if (!input) return '';
   switch (mode) {
     case 'lowercase':
-      return input.toLowerCase();
+      return locale ? input.toLocaleLowerCase(locale) : input.toLowerCase();
     case 'uppercase':
-      return input.toUpperCase();
+      return locale ? input.toLocaleUpperCase(locale) : input.toUpperCase();
     case 'capitalize':
-      return capitalizeWords(input);
+      return capitalizeWords(input, locale);
     case 'title-case':
-      return titleCase(input);
+      return titleCase(input, locale);
     case 'sentence-case':
-      return toSentenceCase(input);
+      return toSentenceCase(input, locale);
     case 'camelCase':
-      return toCamelCase(input);
+      return toCamelCase(input, locale);
     case 'PascalCase':
-      return toPascalCase(input);
+      return toPascalCase(input, locale);
     case 'snake_case':
-      return toSnakeCase(input);
+      return toSnakeCase(input, locale);
     case 'SCREAMING_SNAKE_CASE':
-      return toScreamingSnakeCase(input);
+      return toScreamingSnakeCase(input, locale);
     case 'kebab-case':
-      return toKebabCase(input);
+      return toKebabCase(input, locale);
     case 'train-case':
-      return toTrainCase(input);
+      return toTrainCase(input, locale);
     case 'SCREAMING-KEBAB-CASE':
-      return toScreamingKebabCase(input);
+      return toScreamingKebabCase(input, locale);
     case 'dot.case':
-      return toDotCase(input);
+      return toDotCase(input, locale);
     case 'flatcase':
-      return toFlatCase(input);
+      return toFlatCase(input, locale);
     case 'alternating':
       return toAlternatingCase(input);
     case 'inverse':
-      return toInverseCase(input);
+      return toInverseCase(input, locale);
     default:
       // Exhaustiveness guard: if TypeScript complains here, a CaseMode is unhandled
       mode satisfies never;
@@ -81,18 +81,30 @@ const MINOR_WORDS = new Set([
 /**
  * Capitalizes the first letter of each word while preserving whitespace.
  * Words are split on whitespace boundaries; spacing tokens are kept intact.
+ * If a word starts with a non-letter character (e.g. "123abc"), the first
+ * letter after the non-letter prefix is capitalized instead.
  * Note: uses Unicode-aware regex, so accented characters are handled correctly.
  *
  * @param input - The text to capitalize.
+ * @param locale - Optional locale for case conversion.
  * @returns The text with each word's first letter uppercased and the rest lowercased.
  */
-function capitalizeWords(input: string): string {
+function capitalizeWords(input: string, locale?: string): string {
+  const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
+  const toUpper = (s: string) => (locale ? s.toLocaleUpperCase(locale) : s.toUpperCase());
   return input
     .split(/(\s+)/)
     .map((word) => {
       // Preserve whitespace tokens as-is
       if (/^\s*$/.test(word)) return word;
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      // Find the first letter in the word (Unicode-aware)
+      const firstLetterMatch = word.match(/\p{L}/u);
+      if (!firstLetterMatch) {
+        // No letters at all — return lowercased (e.g. "123" -> "123")
+        return toLower(word);
+      }
+      const idx = firstLetterMatch.index!;
+      return toLower(word.slice(0, idx)) + toUpper(word[idx]) + toLower(word.slice(idx + 1));
     })
     .join('');
 }
@@ -103,24 +115,37 @@ function capitalizeWords(input: string): string {
  * Handles leading/trailing whitespace and preserves multiple-space runs.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The title-cased text.
  */
-function titleCase(input: string): string {
+function titleCase(input: string, locale?: string): string {
+  const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
+  const toUpperFirst = (s: string): string => {
+    const firstLetterMatch = s.match(/\p{L}/u);
+    if (!firstLetterMatch) return toLower(s);
+    const idx = firstLetterMatch.index!;
+    return (
+      toLower(s.slice(0, idx)) +
+      (locale ? s[idx].toLocaleUpperCase(locale) : s[idx].toUpperCase()) +
+      toLower(s.slice(idx + 1))
+    );
+  };
+
   const words = input.split(/(\s+)/);
   return words
     .map((word, i) => {
       // Preserve whitespace
       if (!word.trim()) return word;
-      const lower = word.toLowerCase();
+      const lower = toLower(word);
       // First and last words always capitalized
       if (i === 0 || i === words.length - 1) {
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        return toUpperFirst(word);
       }
       // Capitalize unless it's a minor word
       if (MINOR_WORDS.has(lower)) {
         return lower;
       }
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      return toUpperFirst(word);
     })
     .join('');
 }
@@ -132,22 +157,26 @@ function titleCase(input: string): string {
  * unchanged and the first letter after it is capitalized instead.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The sentence-cased text.
  */
-function toSentenceCase(input: string): string {
+function toSentenceCase(input: string, locale?: string): string {
+  const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
+  const toUpper = (s: string) => (locale ? s.toLocaleUpperCase(locale) : s.toUpperCase());
+
   // First lowercase everything
-  let result = input.toLowerCase();
+  let result = toLower(input);
   // Capitalize first letter of the string (Unicode-aware)
   // If the first character isn't a letter (e.g. number, symbol), leave it and
   // capitalize the first subsequent letter instead
   result = result.replace(
     /^\P{L}*\p{L}/u,
-    (match) => match.slice(0, -1) + match.slice(-1).toUpperCase()
+    (match) => match.slice(0, -1) + toUpper(match.slice(-1))
   );
   // Capitalize first letter after sentence-ending punctuation (Unicode-aware)
   result = result.replace(
     /([.!?]\s*)(\p{L})/gu,
-    (_, punctuation, letter) => punctuation + letter.toUpperCase()
+    (_, punctuation, letter) => punctuation + toUpper(letter)
   );
   return result;
 }
@@ -181,18 +210,31 @@ function splitWords(input: string): string[] {
  * Handles mixed input (space, hyphen, underscore, or camelCase-delimited).
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The camelCased string, or empty string if no words.
  */
-function toCamelCase(input: string): string {
+function toCamelCase(input: string, locale?: string): string {
+  const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
+  const toUpperFirst = (s: string): string => {
+    const firstLetterMatch = s.match(/\p{L}/u);
+    if (!firstLetterMatch) return toLower(s);
+    const idx = firstLetterMatch.index!;
+    return (
+      toLower(s.slice(0, idx)) +
+      (locale ? s[idx].toLocaleUpperCase(locale) : s[idx].toUpperCase()) +
+      toLower(s.slice(idx + 1))
+    );
+  };
+
   const words = splitWords(input);
   if (words.length === 0) return '';
   const first = words[0];
   if (!first) return '';
   return (
-    first.toLowerCase() +
+    toLower(first) +
     words
       .slice(1)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .map((w) => toUpperFirst(w))
       .join('')
   );
 }
@@ -201,23 +243,40 @@ function toCamelCase(input: string): string {
  * Converts text to PascalCase: all words capitalized, no separators.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The PascalCase string, or empty string if no words.
  */
-function toPascalCase(input: string): string {
+function toPascalCase(input: string, locale?: string): string {
+  const toUpperFirst = (s: string): string => {
+    const firstLetterMatch = s.match(/\p{L}/u);
+    if (!firstLetterMatch) {
+      return locale ? s.toLocaleLowerCase(locale) : s.toLowerCase();
+    }
+    const idx = firstLetterMatch.index!;
+    const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
+    return (
+      toLower(s.slice(0, idx)) +
+      (locale ? s[idx].toLocaleUpperCase(locale) : s[idx].toUpperCase()) +
+      toLower(s.slice(idx + 1))
+    );
+  };
+
   const words = splitWords(input);
   if (words.length === 0) return '';
-  return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+  return words.map((w) => toUpperFirst(w)).join('');
 }
 
 /**
  * Converts text to snake_case: all words lowercase, separated by underscores.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The snake_cased string.
  */
-function toSnakeCase(input: string): string {
+function toSnakeCase(input: string, locale?: string): string {
+  const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
   return splitWords(input)
-    .map((w) => w.toLowerCase())
+    .map((w) => toLower(w))
     .join('_');
 }
 
@@ -225,11 +284,13 @@ function toSnakeCase(input: string): string {
  * Converts text to SCREAMING_SNAKE_CASE: all words uppercase, separated by underscores.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The SCREAMING_SNAKE_CASED string.
  */
-function toScreamingSnakeCase(input: string): string {
+function toScreamingSnakeCase(input: string, locale?: string): string {
+  const toUpper = (s: string) => (locale ? s.toLocaleUpperCase(locale) : s.toUpperCase());
   return splitWords(input)
-    .map((w) => w.toUpperCase())
+    .map((w) => toUpper(w))
     .join('_');
 }
 
@@ -237,11 +298,13 @@ function toScreamingSnakeCase(input: string): string {
  * Converts text to kebab-case: all words lowercase, separated by hyphens.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The kebab-cased string.
  */
-function toKebabCase(input: string): string {
+function toKebabCase(input: string, locale?: string): string {
+  const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
   return splitWords(input)
-    .map((w) => w.toLowerCase())
+    .map((w) => toLower(w))
     .join('-');
 }
 
@@ -249,11 +312,26 @@ function toKebabCase(input: string): string {
  * Converts text to Train-Case: all words capitalized, separated by hyphens.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The train-cased string.
  */
-function toTrainCase(input: string): string {
+function toTrainCase(input: string, locale?: string): string {
+  const toUpperFirst = (s: string): string => {
+    const firstLetterMatch = s.match(/\p{L}/u);
+    if (!firstLetterMatch) {
+      return locale ? s.toLocaleLowerCase(locale) : s.toLowerCase();
+    }
+    const idx = firstLetterMatch.index!;
+    const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
+    return (
+      toLower(s.slice(0, idx)) +
+      (locale ? s[idx].toLocaleUpperCase(locale) : s[idx].toUpperCase()) +
+      toLower(s.slice(idx + 1))
+    );
+  };
+
   return splitWords(input)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .map((w) => toUpperFirst(w))
     .join('-');
 }
 
@@ -261,11 +339,13 @@ function toTrainCase(input: string): string {
  * Converts text to SCREAMING-KEBAB-CASE: all words uppercase, separated by hyphens.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The SCREAMING-KEBAB-CASED string.
  */
-function toScreamingKebabCase(input: string): string {
+function toScreamingKebabCase(input: string, locale?: string): string {
+  const toUpper = (s: string) => (locale ? s.toLocaleUpperCase(locale) : s.toUpperCase());
   return splitWords(input)
-    .map((w) => w.toUpperCase())
+    .map((w) => toUpper(w))
     .join('-');
 }
 
@@ -273,11 +353,13 @@ function toScreamingKebabCase(input: string): string {
  * Converts text to dot.case: all words lowercase, separated by dots.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The dot.cased string.
  */
-function toDotCase(input: string): string {
+function toDotCase(input: string, locale?: string): string {
+  const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
   return splitWords(input)
-    .map((w) => w.toLowerCase())
+    .map((w) => toLower(w))
     .join('.');
 }
 
@@ -286,11 +368,13 @@ function toDotCase(input: string): string {
  * Useful for URLs, domain names, and compact identifiers.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The flatcased string.
  */
-function toFlatCase(input: string): string {
+function toFlatCase(input: string, locale?: string): string {
+  const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
   return splitWords(input)
-    .map((w) => w.toLowerCase())
+    .map((w) => toLower(w))
     .join('');
 }
 
@@ -326,13 +410,16 @@ function toAlternatingCase(input: string): string {
  * Handles Unicode surrogate pairs (emoji, non-BMP characters) correctly.
  *
  * @param input - The text to convert.
+ * @param locale - Optional locale for case conversion.
  * @returns The inverse-cased string.
  */
-function toInverseCase(input: string): string {
+function toInverseCase(input: string, locale?: string): string {
+  const toLower = (s: string) => (locale ? s.toLocaleLowerCase(locale) : s.toLowerCase());
+  const toUpper = (s: string) => (locale ? s.toLocaleUpperCase(locale) : s.toUpperCase());
   return Array.from(input)
     .map((char) => {
-      const lower = char.toLowerCase();
-      const upper = char.toUpperCase();
+      const lower = toLower(char);
+      const upper = toUpper(char);
       if (lower === upper) return char; // Not a letter (e.g. digits, spaces, symbols)
       return char === lower ? upper : lower;
     })
@@ -348,12 +435,17 @@ function toInverseCase(input: string): string {
  * @param lineByLine - When true, each line is converted independently.
  * @returns The converted text, or an empty string if input is empty.
  */
-export function convertCaseLines(input: string, mode: CaseMode, lineByLine: boolean): string {
+export function convertCaseLines(
+  input: string,
+  mode: CaseMode,
+  lineByLine: boolean,
+  locale?: string
+): string {
   if (!input) return '';
-  if (!lineByLine) return convertCase(input, mode);
+  if (!lineByLine) return convertCase(input, mode, locale);
   // Preserve trailing newline if present — split keeps trailing empty entries
   const lines = input.split('\n');
-  const converted = lines.map((line) => convertCase(line, mode));
+  const converted = lines.map((line) => convertCase(line, mode, locale));
   return converted.join('\n');
 }
 

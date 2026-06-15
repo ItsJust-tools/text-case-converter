@@ -139,6 +139,25 @@ export function ToolSidebar({
         </label>
       </div>
 
+      {/* Locale selector */}
+      <div className="sidebar-section">
+        <h3>Locale</h3>
+        <select
+          className="locale-select"
+          value={state.locale ?? ''}
+          onChange={(e) => onChange({ locale: e.target.value || undefined })}
+          aria-label="Case conversion locale"
+          title="Locale affects how letters like i/İ are handled (e.g. Turkish)"
+        >
+          <option value="">Default (locale-independent)</option>
+          <option value="tr">Turkish (tr) — i/İ/ı</option>
+          <option value="de">German (de) — ß/SS</option>
+          <option value="az">Azerbaijani (az)</option>
+          <option value="lt">Lithuanian (lt)</option>
+          <option value="nl">Dutch (nl) — Ĳ/ĳ</option>
+        </select>
+      </div>
+
       {/* Stats */}
       <div className="sidebar-section">
         <h3>Statistics</h3>

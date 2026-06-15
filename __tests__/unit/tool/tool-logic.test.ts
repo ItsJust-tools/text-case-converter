@@ -640,3 +640,115 @@ describe('Swap input/output workflow', () => {
     expect(output).toBe('hello world\nfoo bar');
   });
 });
+
+describe('Locale-aware case conversion', () => {
+  it('converts Turkish i/İ correctly with tr locale', () => {
+    // Turkish: lowercase İ -> i (not i̇), uppercase i -> İ (not I)
+    expect(convertCase('İSTANBUL', 'lowercase', 'tr')).toBe('istanbul');
+    expect(convertCase('istanbul', 'uppercase', 'tr')).toBe('İSTANBUL');
+  });
+
+  it('converts German ß correctly with de locale', () => {
+    // German: uppercase ß -> SS
+    expect(convertCase('straße', 'uppercase', 'de')).toBe('STRASSE');
+  });
+
+  it('falls back to default when no locale is provided', () => {
+    expect(convertCase('Hello World', 'lowercase')).toBe('hello world');
+    expect(convertCase('hello', 'uppercase')).toBe('HELLO');
+  });
+
+  it('passes locale through convertCaseLines', () => {
+    expect(convertCaseLines('İSTANBUL', 'lowercase', false, 'tr')).toBe('istanbul');
+    expect(convertCaseLines('istanbul', 'uppercase', true, 'tr')).toBe('İSTANBUL');
+  });
+
+  it('handles locale in capitalize mode', () => {
+    // Turkish: lowercase İ -> i
+    expect(convertCase('İSTANBUL', 'capitalize', 'tr')).toBe('İstanbul');
+  });
+
+  it('handles locale in title-case mode', () => {
+    expect(convertCase('İSTANBUL BÜYÜK', 'title-case', 'tr')).toBe('İstanbul Büyük');
+  });
+
+  it('handles locale in sentence-case mode', () => {
+    expect(convertCase('İSTANBUL. BÜYÜK', 'sentence-case', 'tr')).toBe('İstanbul. Büyük');
+  });
+
+  it('handles locale in camelCase mode', () => {
+    expect(convertCase('İSTANBUL BÜYÜK', 'camelCase', 'tr')).toBe('istanbulBüyük');
+  });
+
+  it('handles locale in PascalCase mode', () => {
+    expect(convertCase('İSTANBUL BÜYÜK', 'PascalCase', 'tr')).toBe('İstanbulBüyük');
+  });
+
+  it('handles locale in snake_case mode', () => {
+    expect(convertCase('İSTANBUL BÜYÜK', 'snake_case', 'tr')).toBe('istanbul_büyük');
+  });
+
+  it('handles locale in inverse mode', () => {
+    expect(convertCase('İSTANBUL', 'inverse', 'tr')).toBe('istanbul');
+  });
+});
+
+describe('capitalizeWords with non-letter prefixes', () => {
+  it('capitalizes first letter after non-letter prefix', () => {
+    expect(convertCase('123abc', 'capitalize')).toBe('123Abc');
+    expect(convertCase('!hello', 'capitalize')).toBe('!Hello');
+    expect(convertCase('123abc 456def', 'capitalize')).toBe('123Abc 456Def');
+  });
+
+  it('handles words with no letters at all', () => {
+    expect(convertCase('123', 'capitalize')).toBe('123');
+    expect(convertCase('!!!', 'capitalize')).toBe('!!!');
+    expect(convertCase('123 !!!', 'capitalize')).toBe('123 !!!');
+  });
+
+  it('handles mixed words with and without letters', () => {
+    expect(convertCase('abc 123 def', 'capitalize')).toBe('Abc 123 Def');
+    expect(convertCase('123abc def', 'capitalize')).toBe('123Abc Def');
+  });
+
+  it('preserves whitespace with non-letter prefixes', () => {
+    expect(convertCase('  123abc  def', 'capitalize')).toBe('  123Abc  Def');
+  });
+});
+
+describe('TextCaseTool locale serialization', () => {
+  it('serializes locale field', () => {
+    const json = textCaseTool.serialize({
+      input: 'test',
+      mode: 'lowercase',
+      lastOutput: '',
+      lineByLine: false,
+      locale: 'tr',
+    });
+    const parsed = JSON.parse(json);
+    expect(parsed.locale).toBe('tr');
+  });
+
+  it('deserializes state with locale', () => {
+    const result = textCaseTool.deserialize({
+      input: 'Test',
+      mode: 'uppercase',
+      locale: 'de',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.locale).toBe('de');
+    }
+  });
+
+  it('deserializes state without locale (backward compat)', () => {
+    const result = textCaseTool.deserialize({
+      input: 'Test',
+      mode: 'uppercase',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.locale).toBeUndefined();
+    }
+  });
+});

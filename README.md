@@ -30,6 +30,7 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 - **Undo/Redo:** use `Ctrl+Z` / `Ctrl+Shift+Z` to revert or reapply text changes
 - **Dark mode:** automatic system preference or manual toggle
 - **High contrast mode:** accessible theme for better readability
+- **Locale-aware case conversion:** select a locale (Turkish, German, etc.) for correct handling of locale-specific letters like Turkish i/İ/ı or German ß/SS
 - **Privacy-first:** 100% client-side — nothing is sent to any server
 - **Zero signup:** works immediately, no account required
 
@@ -98,6 +99,20 @@ first name                FirstName
 last_name                 LastName
 email-address             EmailAddress
 ```
+
+### Locale-Aware Conversion
+
+Some languages have special case-mapping rules that the default `toUpperCase()`/`toLowerCase()` don't handle correctly:
+
+| Language         | Issue              | Example                                              |
+| ---------------- | ------------------ | ---------------------------------------------------- |
+| Turkish (tr)     | Dotted/dotless I   | `İSTANBUL` → lowercase → `istanbul` (not `i̇stanbul`) |
+| German (de)      | ß uppercase        | `straße` → uppercase → `STRASSE` (not `STRASSE`)     |
+| Azerbaijani (az) | Similar to Turkish | Same i/İ/ı rules                                     |
+| Lithuanian (lt)  | Letter Į           | Special uppercase rules                              |
+| Dutch (nl)       | Ĳ/ĳ digraph        | `ĳ` → uppercase → `Ĳ`                                |
+
+Select the appropriate locale from the **Locale** dropdown in the sidebar to enable correct case conversion for your language.
 
 ### Keyboard-Only Workflow
 

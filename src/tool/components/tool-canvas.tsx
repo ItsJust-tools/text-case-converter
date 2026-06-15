@@ -35,11 +35,11 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
     const trimmed = state.input.trim();
     if (!trimmed) return '';
     try {
-      return convertCaseLines(state.input, state.mode, state.lineByLine);
+      return convertCaseLines(state.input, state.mode, state.lineByLine, state.locale);
     } catch {
       return '(conversion error)';
     }
-  }, [state.input, state.mode, state.lineByLine]);
+  }, [state.input, state.mode, state.lineByLine, state.locale]);
 
   // Auto-resize the textarea on input change
   useEffect(() => {

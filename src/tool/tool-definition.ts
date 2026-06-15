@@ -39,7 +39,8 @@ function isTextCaseState(value: unknown): value is TextCaseState {
     typeof v.mode === 'string' &&
     VALID_MODES.includes(v.mode as CaseMode) &&
     (v.lastOutput === undefined || typeof v.lastOutput === 'string') &&
-    (v.lineByLine === undefined || typeof v.lineByLine === 'boolean')
+    (v.lineByLine === undefined || typeof v.lineByLine === 'boolean') &&
+    (v.locale === undefined || typeof v.locale === 'string')
   );
 }
 
@@ -57,6 +58,7 @@ export const textCaseTool: Tool<TextCaseState> = {
     mode: 'lowercase',
     lastOutput: '',
     lineByLine: false,
+    locale: undefined,
   },
   serialize: (state) =>
     JSON.stringify(
@@ -65,6 +67,7 @@ export const textCaseTool: Tool<TextCaseState> = {
         mode: state.mode,
         lastOutput: state.lastOutput,
         lineByLine: state.lineByLine,
+        locale: state.locale,
       },
       null,
       2
@@ -78,6 +81,7 @@ export const textCaseTool: Tool<TextCaseState> = {
           mode: data.mode,
           lastOutput: data.lastOutput ?? '',
           lineByLine: data.lineByLine ?? false,
+          locale: data.locale,
         },
       };
     }
