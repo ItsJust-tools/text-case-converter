@@ -57,6 +57,31 @@ export function ToolSidebar({
     [state.input]
   );
 
+  const outputWordCount = useMemo(() => {
+    if (!state.lastOutput.trim()) return 0;
+    return state.lastOutput.trim().split(/\s+/).length;
+  }, [state.lastOutput]);
+
+  const inputLines = useMemo(
+    () => (state.input ? state.input.split('\n').length : 0),
+    [state.input]
+  );
+
+  const outputLines = useMemo(
+    () => (state.lastOutput ? state.lastOutput.split('\n').length : 0),
+    [state.lastOutput]
+  );
+
+  const charDiff = useMemo(() => {
+    if (!state.lastOutput || !state.input) return null;
+    return state.lastOutput.length - state.input.length;
+  }, [state.lastOutput, state.input]);
+
+  const wordDiff = useMemo(() => {
+    if (!state.lastOutput || !state.input) return null;
+    return outputWordCount - wordCount;
+  }, [state.lastOutput, state.input, outputWordCount, wordCount]);
+
   return (
     <div className="case-converter-sidebar">
       {/* Case mode selection */}
@@ -125,16 +150,50 @@ export function ToolSidebar({
             <dt>Input length</dt>
             <dd>{state.input.length.toLocaleString()}</dd>
           </div>
-          {state.lastOutput && (
-            <div className="stat-row">
-              <dt>Output length</dt>
-              <dd>{state.lastOutput.length.toLocaleString()}</dd>
-            </div>
-          )}
           <div className="stat-row">
             <dt>Input lines</dt>
-            <dd>{state.input ? state.input.split('\n').length : 0}</dd>
+            <dd>{inputLines.toLocaleString()}</dd>
           </div>
+          {state.lastOutput && (
+            <>
+              <div className="stat-row">
+                <dt>Output words</dt>
+                <dd>{outputWordCount.toLocaleString()}</dd>
+              </div>
+              <div className="stat-row">
+                <dt>Output length</dt>
+                <dd>{state.lastOutput.length.toLocaleString()}</dd>
+              </div>
+              <div className="stat-row">
+                <dt>Output lines</dt>
+                <dd>{outputLines.toLocaleString()}</dd>
+              </div>
+              {(charDiff !== null || wordDiff !== null) && (
+                <div className="stat-row stat-row--diff">
+                  <dt>Diff</dt>
+                  <dd>
+                    {charDiff !== null && (
+                      <span
+                        className={`diff-value ${charDiff > 0 ? 'diff-value--pos' : charDiff < 0 ? 'diff-value--neg' : ''}`}
+                      >
+                        {charDiff > 0 ? '+' : ''}
+                        {charDiff.toLocaleString()} chars
+                      </span>
+                    )}
+                    {wordDiff !== null && (
+                      <span
+                        className={`diff-value ${wordDiff > 0 ? 'diff-value--pos' : wordDiff < 0 ? 'diff-value--neg' : ''}`}
+                      >
+                        {' '}
+                        {wordDiff > 0 ? '+' : ''}
+                        {wordDiff.toLocaleString()} words
+                      </span>
+                    )}
+                  </dd>
+                </div>
+              )}
+            </>
+          )}
         </dl>
       </div>
 

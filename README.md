@@ -18,7 +18,7 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 - **One-click copy:** click the output area or Copy button to grab transformed text instantly
 - **Swap Output → Input:** replace the input with the converted output for chained transformations in a different case mode
 - **Copy Output to Input:** copy converted text back to the input field (without clearing the output)
-- **Live statistics:** word count, character count, and line count update in real-time in the sidebar
+- **Live statistics:** word count, character count, line count, and input/output diff update in real-time in the sidebar
 - **Output word count:** the preview pane also tracks word count of the converted text
 - **Smart case cycling:** use `Ctrl+Shift+T` to cycle through all 16 case modes and preview each one in real-time
 - **Keyboard shortcuts** for quick access:
@@ -26,6 +26,7 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
   - `Ctrl+Shift+C` — Copy output to clipboard
   - `Ctrl+Shift+R` — Clear input and reset
   - `Ctrl+Shift+T` — Cycle through case modes
+- **Toolbar actions:** Clear input and Paste from clipboard buttons in the toolbar for quick access
 - **Undo/Redo:** use `Ctrl+Z` / `Ctrl+Shift+Z` to revert or reapply text changes
 - **Dark mode:** automatic system preference or manual toggle
 - **High contrast mode:** accessible theme for better readability
@@ -57,6 +58,53 @@ Built with [Next.js](https://nextjs.org/) and the [ItsJust Core](https://github.
 > automatically split on letter↔digit boundaries. For example,
 > `hello2world` becomes `hello2World` in camelCase and `hello_2_world` in snake_case.
 > Unicode and accented characters (é, ñ, ü) are fully supported.
+
+## Usage Examples
+
+### Quick Conversions
+
+| Goal                   | Input              | Mode        | Output            |
+| ---------------------- | ------------------ | ----------- | ----------------- |
+| Normalize to lowercase | `USER INPUT`       | lowercase   | `user input`      |
+| Make all caps          | `warning message`  | UPPERCASE   | `WARNING MESSAGE` |
+| Title a blog post      | `the art of code`  | Title Case  | `The Art of Code` |
+| Format a sentence      | `hello. world`     | Sentence    | `Hello. World`    |
+| JavaScript variable    | `my variable name` | camelCase   | `myVariableName`  |
+| React component name   | `user profile`     | PascalCase  | `UserProfile`     |
+| Python constant        | `max retries`      | SCREAMING   | `MAX_RETRIES`     |
+| CSS class name         | `main container`   | kebab-case  | `main-container`  |
+| Database column        | `firstName`        | snake_case  | `first_name`      |
+| Environment variable   | `app secret`       | SCREAMING   | `APP_SECRET`      |
+| Meme text              | `hello world`      | alternating | `hElLo wOrLd`     |
+| Toggle case            | `Hello World`      | inverse     | `hELLO wORLD`     |
+
+### Chained Transformations
+
+1. Type or paste `my_variable_name`
+2. Select **camelCase** → output: `myVariableName`
+3. Click **Swap Output → Input** to use the result as new input
+4. Select **PascalCase** → output: `MyVariableName`
+5. Click **Swap Output → Input** again
+6. Select **SCREAMING_SNAKE_CASE** → output: `MY_VARIABLE_NAME`
+
+### Line-by-Line Processing
+
+Enable **Line-by-line mode** in the sidebar to convert each line independently.
+Useful for batch-converting a list of items:
+
+```
+Input:                    Output (PascalCase):
+first name                FirstName
+last_name                 LastName
+email-address             EmailAddress
+```
+
+### Keyboard-Only Workflow
+
+1. `Tab` into the textarea and type your text
+2. `Ctrl+Shift+T` to cycle through case modes until you find the right one
+3. `Ctrl+Shift+C` to copy the result
+4. `Ctrl+Shift+R` to reset and start fresh
 
 ## Getting Started
 

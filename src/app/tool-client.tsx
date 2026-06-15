@@ -185,9 +185,22 @@ export default function ToolClient() {
 
   const toolbarActions = useMemo(() => tool.toolbarActions, [tool.toolbarActions]);
 
+  const handleClear = useCallback(() => {
+    setToolData((prev) => ({ ...prev, input: '', lastOutput: '' }));
+    showToast('Input cleared', 'success');
+  }, [setToolData, showToast]);
+
+  const handlePaste = useCallback(
+    (text: string) => {
+      setToolData((prev) => ({ ...prev, input: text }));
+      showToast('Pasted from clipboard', 'success');
+    },
+    [setToolData, showToast]
+  );
+
   const toolbarContent = (
     <>
-      <ToolToolbar />
+      <ToolToolbar input={tool.state.data.input} onClear={handleClear} onPaste={handlePaste} />
     </>
   );
 

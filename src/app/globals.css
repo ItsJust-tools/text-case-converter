@@ -505,6 +505,29 @@ body {
   color: var(--accent);
 }
 
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolbar-btn:disabled:hover {
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.toolbar-btn--clear:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.toolbar-btn--paste:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+  border-color: var(--success);
+  color: var(--success);
+}
+
 /* ===================================================
    TEXT CASE CONVERTER - Sidebar
    =================================================== */
@@ -759,6 +782,28 @@ body {
   color: var(--foreground);
   margin: 0;
   font-variant-numeric: tabular-nums;
+}
+
+.stat-row--diff {
+  padding-top: 0.375rem;
+  border-top: 1px solid var(--border);
+}
+
+.stat-row--diff dt {
+  font-weight: 600;
+}
+
+.diff-value {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.diff-value--pos {
+  color: var(--success);
+}
+
+.diff-value--neg {
+  color: var(--error);
 }
 
 /* --- Shortcut list (sidebar) --- */
