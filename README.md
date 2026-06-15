@@ -205,7 +205,7 @@ staged files before each commit.
 
 ## Serialization
 
-Saved state preserves all fields: `input`, `mode`, `showOutput`, `autoCopy`, and `lastOutput`. Deserialization validates that `mode` is one of the 16 known cases and gracefully fills defaults for missing optional fields.
+Saved state preserves all fields: `input`, `mode`, `lastOutput`, and `lineByLine`. Deserialization validates that `mode` is one of the 16 known cases and gracefully fills defaults for missing optional fields.
 
 State is saved to `localStorage` automatically via the `useTool` hook.
 

@@ -18,6 +18,13 @@ import type { TextCaseState } from '@/tool/types';
 const MAX_HISTORY = 50;
 
 /**
+ * Milliseconds to wait before committing an input change to the undo stack.
+ * This prevents rapid keystrokes from flooding the undo stack with one entry
+ * per character.
+ */
+const INPUT_DEBOUNCE_MS = 500;
+
+/**
  * Determines the modifier key based on the user's platform.
  */
 function isMac(): boolean {
@@ -59,9 +66,11 @@ export default function ToolClient() {
   // Undo/redo history
   const [undoStack, setUndoStack] = useState<TextCaseState[]>([]);
   const [redoStack, setRedoStack] = useState<TextCaseState[]>([]);
+  // Debounce timer for coalescing adjacent input changes
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
-   * Pushes the current state onto the undo stack before applying a change.
+   * Pushes the given state onto the undo stack.
    * Clears the redo stack since a new action invalidates redo history.
    */
   const pushUndo = useCallback((state: TextCaseState) => {
@@ -72,6 +81,24 @@ export default function ToolClient() {
     });
     setRedoStack([]);
   }, []);
+
+  /**
+   * Queues the given state for undo push with a debounce delay.
+   * Multiple rapid calls within the debounce window collapse into a single
+   * undo entry. This prevents each keystroke from creating a separate entry.
+   */
+  const pushUndoDebounced = useCallback(
+    (state: TextCaseState) => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      debounceTimer.current = setTimeout(() => {
+        pushUndo(state);
+        debounceTimer.current = null;
+      }, INPUT_DEBOUNCE_MS);
+    },
+    [pushUndo]
+  );
 
   /**
    * Undo: restore the most recent undo entry, pushing current state to redo.
@@ -118,13 +145,15 @@ export default function ToolClient() {
    * When the input or mode changes, automatically recompute the output
    * and cache it in lastOutput so keyboard shortcuts stay consistent
    * with the real-time preview. Pushes the previous state onto the undo
-   * stack before applying the change.
+   * stack (debounced for input changes) before applying the change.
+   *
+   * Input changes are debounced so rapid typing coalesces into a single
+   * undo entry. Mode changes are pushed immediately.
    */
   const handleStateChange = useCallback(
     (patch: Partial<TextCaseState>) => {
+      const snapshot = { ...tool.state.data };
       setToolData((prev) => {
-        // Push current state to undo before changing
-        pushUndo(prev);
         const next = { ...prev, ...patch };
         // Keep lastOutput in sync whenever input or mode changes
         if ('input' in patch || 'mode' in patch) {
@@ -135,8 +164,18 @@ export default function ToolClient() {
         }
         return next;
       });
+      // Push undo snapshot after setToolData commits.
+      // Using queueMicrotask to avoid side-effects inside the setter.
+      queueMicrotask(() => {
+        if ('input' in patch) {
+          pushUndoDebounced(snapshot);
+        } else {
+          // Mode, lineByLine etc — push immediately
+          pushUndo(snapshot);
+        }
+      });
     },
-    [setToolData, pushUndo]
+    [tool.state.data, setToolData, pushUndo, pushUndoDebounced]
   );
 
   /**
