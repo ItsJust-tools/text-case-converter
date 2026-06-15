@@ -27,10 +27,6 @@ export interface TextCaseState {
   input: string;
   /** The currently selected case transformation mode */
   mode: CaseMode;
-  /** Whether to show the transformed output (vs. raw) */
-  showOutput: boolean;
-  /** Auto-copy transformed text to clipboard */
-  autoCopy: boolean;
   /** Recently transformed output (cached for copy) */
   lastOutput: string;
   /** When enabled, multi-line input is processed line-by-line instead of as a whole */

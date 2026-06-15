@@ -45,6 +45,12 @@ const toolConfig = {
         },
         { keys: 'Ctrl+Shift+R', label: 'Reset', description: 'clear input and reset state' },
         { keys: 'Ctrl+Shift+T', label: 'Toggle Case', description: 'cycle through case modes' },
+        { keys: 'Ctrl+Z', label: 'Undo', description: 'undo the last change' },
+        {
+          keys: 'Ctrl+Shift+Z',
+          label: 'Redo',
+          description: 'redo a previously undone change',
+        },
       ],
     },
   ],

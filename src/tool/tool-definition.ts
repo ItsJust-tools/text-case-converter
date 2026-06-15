@@ -38,8 +38,6 @@ function isTextCaseState(value: unknown): value is TextCaseState {
     typeof v.input === 'string' &&
     typeof v.mode === 'string' &&
     VALID_MODES.includes(v.mode as CaseMode) &&
-    (v.showOutput === undefined || typeof v.showOutput === 'boolean') &&
-    (v.autoCopy === undefined || typeof v.autoCopy === 'boolean') &&
     (v.lastOutput === undefined || typeof v.lastOutput === 'string') &&
     (v.lineByLine === undefined || typeof v.lineByLine === 'boolean')
   );
@@ -57,8 +55,6 @@ export const textCaseTool: Tool<TextCaseState> = {
   initialState: {
     input: '',
     mode: 'lowercase',
-    showOutput: true,
-    autoCopy: false,
     lastOutput: '',
     lineByLine: false,
   },
@@ -67,8 +63,6 @@ export const textCaseTool: Tool<TextCaseState> = {
       {
         input: state.input,
         mode: state.mode,
-        showOutput: state.showOutput,
-        autoCopy: state.autoCopy,
         lastOutput: state.lastOutput,
         lineByLine: state.lineByLine,
       },
@@ -82,8 +76,6 @@ export const textCaseTool: Tool<TextCaseState> = {
         data: {
           input: data.input,
           mode: data.mode,
-          showOutput: data.showOutput ?? true,
-          autoCopy: data.autoCopy ?? false,
           lastOutput: data.lastOutput ?? '',
           lineByLine: data.lineByLine ?? false,
         },

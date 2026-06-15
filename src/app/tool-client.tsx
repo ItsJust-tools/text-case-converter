@@ -14,6 +14,9 @@ import { ToolShell, useTool } from '@itsjust/core';
 import { convertCaseLines } from '@/tool/lib/case-converter';
 import type { TextCaseState } from '@/tool/types';
 
+/** Maximum number of undo/redo history entries to keep. */
+const MAX_HISTORY = 50;
+
 /**
  * Determines the modifier key based on the user's platform.
  */
@@ -53,6 +56,59 @@ export default function ToolClient() {
 
   const title = toolConfig.name;
 
+  // Undo/redo history
+  const [undoStack, setUndoStack] = useState<TextCaseState[]>([]);
+  const [redoStack, setRedoStack] = useState<TextCaseState[]>([]);
+
+  /**
+   * Pushes the current state onto the undo stack before applying a change.
+   * Clears the redo stack since a new action invalidates redo history.
+   */
+  const pushUndo = useCallback((state: TextCaseState) => {
+    setUndoStack((prev) => {
+      const next = [...prev, state];
+      if (next.length > MAX_HISTORY) next.shift();
+      return next;
+    });
+    setRedoStack([]);
+  }, []);
+
+  /**
+   * Undo: restore the most recent undo entry, pushing current state to redo.
+   */
+  const handleUndo = useCallback(() => {
+    const undoEntry = undoStack[undoStack.length - 1];
+    if (!undoEntry) return;
+    setToolData((prev) => {
+      setRedoStack((r) => {
+        const next = [...r, prev];
+        if (next.length > MAX_HISTORY) next.shift();
+        return next;
+      });
+      return undoEntry;
+    });
+    setUndoStack((prev) => prev.slice(0, -1));
+    showToast('Undo', 'success');
+  }, [undoStack, setToolData, showToast]);
+
+  /**
+   * Redo: restore the most recent redo entry, pushing current state to undo.
+   */
+  const handleRedo = useCallback(() => {
+    const redoEntry = redoStack[redoStack.length - 1];
+    if (!redoEntry) return;
+    setToolData((prev) => {
+      setUndoStack((u) => {
+        const next = [...u, prev];
+        if (next.length > MAX_HISTORY) next.shift();
+        return next;
+      });
+      return redoEntry;
+    });
+    setRedoStack((prev) => prev.slice(0, -1));
+    showToast('Redo', 'success');
+  }, [redoStack, setToolData, showToast]);
+
   useEffect(() => {
     document.title = title;
   }, [title]);
@@ -61,11 +117,14 @@ export default function ToolClient() {
    * Handles partial state updates from child components (canvas, sidebar).
    * When the input or mode changes, automatically recompute the output
    * and cache it in lastOutput so keyboard shortcuts stay consistent
-   * with the real-time preview.
+   * with the real-time preview. Pushes the previous state onto the undo
+   * stack before applying the change.
    */
   const handleStateChange = useCallback(
     (patch: Partial<TextCaseState>) => {
       setToolData((prev) => {
+        // Push current state to undo before changing
+        pushUndo(prev);
         const next = { ...prev, ...patch };
         // Keep lastOutput in sync whenever input or mode changes
         if ('input' in patch || 'mode' in patch) {
@@ -77,7 +136,7 @@ export default function ToolClient() {
         return next;
       });
     },
-    [setToolData]
+    [setToolData, pushUndo]
   );
 
   /**
@@ -147,6 +206,8 @@ export default function ToolClient() {
   const copyRef = useRef<typeof handleCopyOutput>(handleCopyOutput);
   const resetRef = useRef<typeof handleResetState>(handleResetState);
   const cycleRef = useRef<typeof cycleMode>(cycleMode);
+  const undoRef = useRef<typeof handleUndo>(handleUndo);
+  const redoRef = useRef<typeof handleRedo>(handleRedo);
 
   // Keep refs current with latest callbacks
   useEffect(() => {
@@ -154,10 +215,31 @@ export default function ToolClient() {
     copyRef.current = handleCopyOutput;
     resetRef.current = handleResetState;
     cycleRef.current = cycleMode;
+    undoRef.current = handleUndo;
+    redoRef.current = handleRedo;
   });
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      // Don't intercept undo/redo when focused on a textarea/input
+      // (browser native undo/redo should work there)
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      const isInput = tag === 'textarea' || tag === 'input';
+
+      if (matchesModShortcut(e, 'z') && !e.shiftKey) {
+        e.preventDefault();
+        if (!isInput) {
+          undoRef.current();
+        }
+        return;
+      }
+      if (matchesModShortcut(e, 'z', true)) {
+        e.preventDefault();
+        if (!isInput) {
+          redoRef.current();
+        }
+        return;
+      }
       if (matchesModShortcut(e, 'enter')) {
         e.preventDefault();
         convertRef.current();

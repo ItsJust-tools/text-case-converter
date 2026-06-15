@@ -52,15 +52,25 @@ export function ToolSidebar({
     onCopyOutputToInput?.();
   }, [state.input, state.mode, state.lineByLine, onChange, onCopyOutputToInput]);
 
+  // Compute the real-time output for accurate stats in the sidebar
+  const realtimeOutput = useMemo(() => {
+    if (!state.input.trim()) return '';
+    try {
+      return convertCaseLines(state.input, state.mode, state.lineByLine);
+    } catch {
+      return '';
+    }
+  }, [state.input, state.mode, state.lineByLine]);
+
   const wordCount = useMemo(
     () => (state.input.trim() ? state.input.trim().split(/\s+/).length : 0),
     [state.input]
   );
 
   const outputWordCount = useMemo(() => {
-    if (!state.lastOutput.trim()) return 0;
-    return state.lastOutput.trim().split(/\s+/).length;
-  }, [state.lastOutput]);
+    const trimmed = realtimeOutput.trim();
+    return trimmed ? trimmed.split(/\s+/).length : 0;
+  }, [realtimeOutput]);
 
   const inputLines = useMemo(
     () => (state.input ? state.input.split('\n').length : 0),
@@ -68,19 +78,19 @@ export function ToolSidebar({
   );
 
   const outputLines = useMemo(
-    () => (state.lastOutput ? state.lastOutput.split('\n').length : 0),
-    [state.lastOutput]
+    () => (realtimeOutput ? realtimeOutput.split('\n').length : 0),
+    [realtimeOutput]
   );
 
   const charDiff = useMemo(() => {
-    if (!state.lastOutput || !state.input) return null;
-    return state.lastOutput.length - state.input.length;
-  }, [state.lastOutput, state.input]);
+    if (!realtimeOutput || !state.input) return null;
+    return realtimeOutput.length - state.input.length;
+  }, [realtimeOutput, state.input]);
 
   const wordDiff = useMemo(() => {
-    if (!state.lastOutput || !state.input) return null;
+    if (!realtimeOutput || !state.input) return null;
     return outputWordCount - wordCount;
-  }, [state.lastOutput, state.input, outputWordCount, wordCount]);
+  }, [realtimeOutput, state.input, outputWordCount, wordCount]);
 
   return (
     <div className="case-converter-sidebar">
@@ -154,7 +164,7 @@ export function ToolSidebar({
             <dt>Input lines</dt>
             <dd>{inputLines.toLocaleString()}</dd>
           </div>
-          {state.lastOutput && (
+          {realtimeOutput && (
             <>
               <div className="stat-row">
                 <dt>Output words</dt>
@@ -162,7 +172,7 @@ export function ToolSidebar({
               </div>
               <div className="stat-row">
                 <dt>Output length</dt>
-                <dd>{state.lastOutput.length.toLocaleString()}</dd>
+                <dd>{realtimeOutput.length.toLocaleString()}</dd>
               </div>
               <div className="stat-row">
                 <dt>Output lines</dt>
@@ -250,6 +260,14 @@ export function ToolSidebar({
           <div className="shortcut-row">
             <kbd className="shortcut-kbd">Ctrl+Shift+T</kbd>
             <span className="shortcut-label">Cycle mode</span>
+          </div>
+          <div className="shortcut-row">
+            <kbd className="shortcut-kbd">Ctrl+Z</kbd>
+            <span className="shortcut-label">Undo</span>
+          </div>
+          <div className="shortcut-row">
+            <kbd className="shortcut-kbd">Ctrl+Shift+Z</kbd>
+            <span className="shortcut-label">Redo</span>
           </div>
         </dl>
       </div>

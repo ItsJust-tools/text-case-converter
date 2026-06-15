@@ -419,8 +419,6 @@ describe('TextCaseTool definition', () => {
     const tool = textCaseTool;
     expect(tool.initialState.input).toBe('');
     expect(tool.initialState.mode).toBe('lowercase');
-    expect(tool.initialState.showOutput).toBe(true);
-    expect(tool.initialState.autoCopy).toBe(false);
     expect(tool.initialState.lastOutput).toBe('');
   });
 
@@ -460,8 +458,6 @@ describe('TextCaseTool definition', () => {
     const result = textCaseTool.deserialize({ input: 'Hi', mode: 'uppercase' });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.showOutput).toBe(true);
-      expect(result.data.autoCopy).toBe(false);
       expect(result.data.lastOutput).toBe('');
     }
   });
@@ -508,8 +504,6 @@ describe('createMockToolState with TextCaseState', () => {
     const state = createMockToolState<TextCaseState>({
       input: '',
       mode: 'lowercase',
-      showOutput: true,
-      autoCopy: false,
       lastOutput: '',
       lineByLine: false,
     });
@@ -521,8 +515,6 @@ describe('createMockToolState with TextCaseState', () => {
     const state = createMockToolState<TextCaseState>({
       input: '',
       mode: 'lowercase',
-      showOutput: true,
-      autoCopy: false,
       lastOutput: '',
       lineByLine: false,
     });
@@ -534,8 +526,6 @@ describe('createMockToolState with TextCaseState', () => {
     const trainState = createMockToolState<TextCaseState>({
       input: 'hello world',
       mode: 'train-case',
-      showOutput: true,
-      autoCopy: false,
       lastOutput: '',
       lineByLine: false,
     });
@@ -544,8 +534,6 @@ describe('createMockToolState with TextCaseState', () => {
     const sentenceState = createMockToolState<TextCaseState>({
       input: 'hello world',
       mode: 'sentence-case',
-      showOutput: true,
-      autoCopy: false,
       lastOutput: '',
       lineByLine: false,
     });

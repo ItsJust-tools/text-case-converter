@@ -93,8 +93,6 @@ describe('app and seo', () => {
     const serialized = textCaseTool.serialize({
       input: 'Hello',
       mode: 'uppercase',
-      showOutput: true,
-      autoCopy: false,
       lastOutput: '',
       lineByLine: false,
     });
@@ -121,8 +119,6 @@ describe('app and seo', () => {
     const defaultState: TextCaseState = {
       input: 'Hello World',
       mode: 'lowercase',
-      showOutput: true,
-      autoCopy: false,
       lastOutput: '',
       lineByLine: false,
     };
