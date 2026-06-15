@@ -239,6 +239,20 @@ export default function ToolClient() {
     showToast('Reset', 'success');
   }, [setToolData, showToast]);
 
+  /**
+   * Swaps the converted output back into the input, allowing chained
+   * transformations. Uses the cached lastOutput to avoid recomputation.
+   */
+  const handleSwap = useCallback(() => {
+    const { input, lastOutput } = tool.state.data;
+    if (!input.trim() || !lastOutput) {
+      showToast('Nothing to swap', 'error');
+      return;
+    }
+    setToolData((prev) => ({ ...prev, input: lastOutput, lastOutput: '' }));
+    showToast('Input replaced with converted output', 'success');
+  }, [tool.state.data, setToolData, showToast]);
+
   // Wire tool-specific keyboard shortcuts using stable refs to avoid
   // stale closure issues.
   const convertRef = useRef<typeof handleConvert>(handleConvert);
@@ -321,7 +335,13 @@ export default function ToolClient() {
 
   const toolbarContent = (
     <>
-      <ToolToolbar input={tool.state.data.input} onClear={handleClear} onPaste={handlePaste} />
+      <ToolToolbar
+        input={tool.state.data.input}
+        onClear={handleClear}
+        onPaste={handlePaste}
+        onSwap={handleSwap}
+        hasOutput={!!tool.state.data.lastOutput}
+      />
     </>
   );
 

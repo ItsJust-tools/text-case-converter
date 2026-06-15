@@ -528,6 +528,12 @@ body {
   color: var(--success);
 }
 
+.toolbar-btn--swap:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* ===================================================
    TEXT CASE CONVERTER - Sidebar
    =================================================== */

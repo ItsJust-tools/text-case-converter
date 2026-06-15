@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { MODE_GROUPS, getModeDescription, convertCaseLines } from '../lib/case-converter';
+import { MODE_GROUPS, getModeDescription } from '../lib/case-converter';
 import type { TextCaseState, CaseMode } from '../types';
 
 interface ToolSidebarProps {
@@ -19,6 +19,9 @@ export function ToolSidebar({
   onSwap,
   onCopyOutputToInput,
 }: ToolSidebarProps) {
+  // Use the pre-computed lastOutput from state to avoid redundant computation.
+  // The parent (ToolClient) keeps lastOutput in sync whenever input or mode changes.
+  const realtimeOutput = state.lastOutput;
   const handleModeSelect = useCallback(
     (mode: CaseMode) => {
       onChange({ mode });
@@ -35,32 +38,20 @@ export function ToolSidebar({
    * Converts the current input, then uses that as the new input value.
    */
   const handleSwap = useCallback(() => {
-    if (!state.input.trim()) return;
-    const output = convertCaseLines(state.input, state.mode, state.lineByLine);
-    onChange({ input: output, lastOutput: '' });
+    if (!state.input.trim() || !realtimeOutput) return;
+    onChange({ input: realtimeOutput, lastOutput: '' });
     onSwap?.();
-  }, [state.input, state.mode, state.lineByLine, onChange, onSwap]);
+  }, [state.input, realtimeOutput, onChange, onSwap]);
 
   /**
    * Copies the converted output back to the input, preserving the current
    * output for reference.
    */
   const handleCopyOutputToInput = useCallback(() => {
-    if (!state.input.trim()) return;
-    const output = convertCaseLines(state.input, state.mode, state.lineByLine);
-    onChange({ input: output });
+    if (!state.input.trim() || !realtimeOutput) return;
+    onChange({ input: realtimeOutput });
     onCopyOutputToInput?.();
-  }, [state.input, state.mode, state.lineByLine, onChange, onCopyOutputToInput]);
-
-  // Compute the real-time output for accurate stats in the sidebar
-  const realtimeOutput = useMemo(() => {
-    if (!state.input.trim()) return '';
-    try {
-      return convertCaseLines(state.input, state.mode, state.lineByLine);
-    } catch {
-      return '';
-    }
-  }, [state.input, state.mode, state.lineByLine]);
+  }, [state.input, realtimeOutput, onChange, onCopyOutputToInput]);
 
   const wordCount = useMemo(
     () => (state.input.trim() ? state.input.trim().split(/\s+/).length : 0),
