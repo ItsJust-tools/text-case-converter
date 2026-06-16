@@ -202,6 +202,18 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
         >
           {output || <span className="output-placeholder">Converted text will appear here...</span>}
         </div>
+        {/* Screen-reader announcement for output changes */}
+        <div
+          className="sr-only"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          aria-relevant="additions text"
+        >
+          {output
+            ? `Output: ${output.slice(0, 200)}${output.length > 200 ? '…' : ''}`
+            : 'No output'}
+        </div>
       </div>
     </div>
   );
