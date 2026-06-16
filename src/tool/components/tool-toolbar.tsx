@@ -15,13 +15,23 @@ interface ToolToolbarProps {
   onSwap?: () => void;
   /** Whether there is output to swap (enables/disables the swap button). */
   hasOutput?: boolean;
+  /** Callback to copy the current output to clipboard. */
+  onCopyOutput?: () => void;
 }
 
 /**
  * Toolbar component for the Text Case Converter.
- * Displays a link to the help/guide page, a Clear button, and a Paste button.
+ * Displays a link to the help/guide page, a Clear button, a Paste button,
+ * a Copy Output button, and a Swap button for quick access.
  */
-export function ToolToolbar({ input, onClear, onPaste, onSwap, hasOutput }: ToolToolbarProps) {
+export function ToolToolbar({
+  input,
+  onClear,
+  onPaste,
+  onSwap,
+  hasOutput,
+  onCopyOutput,
+}: ToolToolbarProps) {
   const handlePaste = useCallback(async () => {
     try {
       const text = await navigator.clipboard.readText();
@@ -54,6 +64,16 @@ export function ToolToolbar({ input, onClear, onPaste, onSwap, hasOutput }: Tool
         title="Paste from clipboard"
       >
         Paste
+      </button>
+      <button
+        type="button"
+        className="toolbar-btn toolbar-btn--copy"
+        onClick={onCopyOutput}
+        disabled={!hasOutput}
+        aria-label="Copy output to clipboard"
+        title="Copy converted output to clipboard"
+      >
+        Copy
       </button>
       <button
         type="button"

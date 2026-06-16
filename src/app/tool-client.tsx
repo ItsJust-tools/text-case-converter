@@ -150,11 +150,21 @@ export default function ToolClient() {
    * Input changes are debounced so rapid typing coalesces into a single
    * undo entry. Mode changes are pushed immediately.
    *
+   * Updates to `lastOutput` alone (e.g. from copy operations) do NOT
+   * create undo entries, since they are derived state, not user actions.
+   *
    * Uses a ref to capture the pre-update snapshot inside the setToolData
    * callback, avoiding stale closure issues with tool.state.data.
    */
   const handleStateChange = useCallback(
     (patch: Partial<TextCaseState>) => {
+      // Skip undo for lastOutput-only changes (derived state from copy ops)
+      const patchKeys = Object.keys(patch);
+      if (patchKeys.length === 1 && patchKeys[0] === 'lastOutput') {
+        setToolData((prev) => ({ ...prev, ...patch }));
+        return;
+      }
+
       const snapshotRef = { current: null as TextCaseState | null };
       setToolData((prev) => {
         // Capture snapshot before mutation
@@ -327,11 +337,20 @@ export default function ToolClient() {
 
   const toolbarActions = useMemo(() => tool.toolbarActions, [tool.toolbarActions]);
 
+  /**
+   * Clears the input text and resets the lastOutput.
+   * Shows a success toast to confirm the action.
+   */
   const handleClear = useCallback(() => {
     setToolData((prev) => ({ ...prev, input: '', lastOutput: '' }));
     showToast('Input cleared', 'success');
   }, [setToolData, showToast]);
 
+  /**
+   * Pastes text from the system clipboard into the input field.
+   * Replaces the current input entirely with the pasted content.
+   * Shows a success toast to confirm the action.
+   */
   const handlePaste = useCallback(
     (text: string) => {
       setToolData((prev) => ({ ...prev, input: text }));
@@ -348,6 +367,7 @@ export default function ToolClient() {
         onPaste={handlePaste}
         onSwap={handleSwap}
         hasOutput={!!tool.state.data.lastOutput}
+        onCopyOutput={handleCopyOutput}
       />
     </>
   );
