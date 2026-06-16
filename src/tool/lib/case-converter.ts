@@ -23,12 +23,11 @@ function toUpper(s: string, locale?: string): string {
  * @returns The word with its first letter uppercased and the rest lowercased.
  */
 function toUpperFirst(word: string, locale?: string): string {
-  const firstLetterMatch = word.match(/\p{L}/u);
-  if (!firstLetterMatch) return toLower(word, locale);
-  const idx = firstLetterMatch.index!;
+  const idx = word.search(/\p{L}/u);
+  if (idx === -1) return toLower(word, locale);
   return (
     toLower(word.slice(0, idx), locale) +
-    toUpper(word.charAt(idx), locale) +
+    toUpper(word[idx]!, locale) +
     toLower(word.slice(idx + 1), locale)
   );
 }
@@ -354,12 +353,9 @@ function toAlternatingCase(input: string, locale?: string): string {
   let letterIndex = 0;
   return Array.from(input)
     .map((char) => {
-      const lower = toLower(char, locale);
-      const upper = toUpper(char, locale);
-      // Non-letter check: if case-insensitive comparison doesn't change the char,
-      // it's not a letter (e.g. spaces, digits, symbols)
-      if (lower === upper) return char;
-      const result = letterIndex % 2 === 0 ? lower : upper;
+      // Fast-path: skip non-letters without calling toLower/toUpper
+      if (!/\p{L}/u.test(char)) return char;
+      const result = letterIndex % 2 === 0 ? toLower(char, locale) : toUpper(char, locale);
       letterIndex++;
       return result;
     })
@@ -369,7 +365,7 @@ function toAlternatingCase(input: string, locale?: string): string {
 /**
  * Converts text to inverse case: all uppercase letters become lowercase,
  * all lowercase letters become uppercase. Non-alphabetic characters are unchanged.
- * Supports Unicode letters (e.g. café -> CAFÉ) via locale-independent comparison.
+ * Supports Unicode letters (e.g. café -> CAFÉ) and locale-aware case mapping.
  * Handles Unicode surrogate pairs (emoji, non-BMP characters) correctly.
  *
  * @param input - The text to convert.
