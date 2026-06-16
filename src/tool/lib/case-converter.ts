@@ -73,7 +73,7 @@ export function convertCase(input: string, mode: CaseMode, locale?: string): str
     case 'flatcase':
       return toFlatCase(input, locale);
     case 'alternating':
-      return toAlternatingCase(input);
+      return toAlternatingCase(input, locale);
     case 'inverse':
       return toInverseCase(input, locale);
     default:
@@ -350,12 +350,12 @@ function toFlatCase(input: string, locale?: string): string {
  * @param input - The text to convert.
  * @returns The alternating-cased string.
  */
-function toAlternatingCase(input: string): string {
+function toAlternatingCase(input: string, locale?: string): string {
   let letterIndex = 0;
   return Array.from(input)
     .map((char) => {
-      const lower = char.toLowerCase();
-      const upper = char.toUpperCase();
+      const lower = toLower(char, locale);
+      const upper = toUpper(char, locale);
       // Non-letter check: if case-insensitive comparison doesn't change the char,
       // it's not a letter (e.g. spaces, digits, symbols)
       if (lower === upper) return char;

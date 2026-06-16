@@ -8,6 +8,7 @@ import ErrorPage from '@/app/error';
 import NotFound from '@/app/not-found';
 import { JsonLd } from '@/app/json-ld';
 import ToolPage from '@/app/page';
+import HelpPage from '@/app/help/page';
 import { cn } from '@/lib/utils';
 import { generateSeoMetadata } from '@/lib/seo';
 import toolConfig from '@/tool/tool.config';
@@ -113,6 +114,21 @@ describe('app and seo', () => {
     if (!invalidResult.success) {
       expect(invalidResult.error).toContain('Invalid data');
     }
+  });
+
+  it('renders help page with documentation', () => {
+    render(<HelpPage />);
+    expect(screen.getByText('Text Case Converter — Help')).toBeInTheDocument();
+    expect(screen.getByText('Getting Started')).toBeInTheDocument();
+    expect(screen.getByText('Supported Case Modes')).toBeInTheDocument();
+    expect(screen.getByText('Keyboard Shortcuts')).toBeInTheDocument();
+    expect(screen.getByText('Locale Support')).toBeInTheDocument();
+    expect(screen.getByText('Line-by-Line Mode')).toBeInTheDocument();
+    expect(screen.getByText('Chaining Transformations')).toBeInTheDocument();
+    expect(screen.getByText('Privacy')).toBeInTheDocument();
+    expect(screen.getByText('Accessibility')).toBeInTheDocument();
+    // Should have a link back to the converter
+    expect(screen.getAllByText('← Back to converter').length).toBeGreaterThan(0);
   });
 
   it('renders tool components', () => {

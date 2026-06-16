@@ -215,6 +215,21 @@ describe('TextCase converter logic', () => {
       expect(convertCase('a😀b', 'inverse')).toBe('A😀B');
     });
 
+    it('handles alternating case with locale parameter', () => {
+      // Alternating case with locale should produce same result as without
+      // (alternating is a visual pattern, but locale should be accepted for consistency)
+      expect(convertCase('hello', 'alternating', 'tr')).toBe('hElLo');
+      expect(convertCase('hello', 'alternating', 'de')).toBe('hElLo');
+      expect(convertCase('HELLO', 'alternating', 'tr')).toBe('hElLo');
+    });
+
+    it('handles alternating case with Turkish i/İ locale', () => {
+      // Turkish: lowercase İ -> i, uppercase i -> İ
+      // Alternating: first letter lowercase, second uppercase
+      expect(convertCase('İ', 'alternating', 'tr')).toBe('i');
+      expect(convertCase('İİ', 'alternating', 'tr')).toBe('iİ');
+    });
+
     it('defaults to returning input for unknown mode', () => {
       expect(convertCase('test', 'invalid-mode' as CaseMode)).toBe('test');
     });
