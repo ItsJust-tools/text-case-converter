@@ -27,6 +27,22 @@ export type {
 } from './types';
 export { defaultFeatures, defaultAutoSaveOptions, formatLabels } from './types';
 
+// Utilities
+/**
+ * copyTextToClipboard — Copy text to the clipboard with a graceful fallback
+ * to `document.execCommand("copy")` when the async Clipboard API is
+ * unavailable or rejects (insecure origins, permission denials, iframes).
+ *
+ * @example
+ * const ok = await copyTextToClipboard('hello');
+ */
+export {
+  copyTextToClipboard,
+  copyWithExecCommand,
+  readTextFromClipboard,
+  readWithExecCommand,
+} from './lib/clipboard';
+
 // Engines
 /** Engine that loads exporters and triggers client-side downloads. */
 export { ExportEngine, createExportEngine } from './engines/export-engine';

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
+import { copyTextToClipboard } from '../lib/clipboard';
 import type { DeserializeResult } from '../tool';
 
 interface UseUrlStateOptions {
@@ -86,7 +87,8 @@ export function useUrlState(options: UseUrlStateOptions): UseUrlStateReturn {
             return shareUrl;
           }
         } else {
-          await navigator.clipboard.writeText(shareUrl);
+          const ok = await copyTextToClipboard(shareUrl);
+          if (!ok) throw new Error('Clipboard blocked');
         }
         showToast('Share URL copied to clipboard', 'success');
         return shareUrl;

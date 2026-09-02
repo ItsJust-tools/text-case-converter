@@ -180,6 +180,11 @@ describe('useShare', () => {
     Object.assign(navigator, {
       clipboard: { writeText: vi.fn().mockRejectedValue(new Error('Clipboard blocked')) },
     });
+    // Also block the legacy execCommand fallback so the copy genuinely fails.
+    if (typeof document.execCommand !== 'function') {
+      document.execCommand = vi.fn(() => false) as unknown as typeof document.execCommand;
+    }
+    const execSpy = vi.spyOn(document, 'execCommand').mockReturnValue(false);
     const { result } = renderHook(() => useShare());
 
     const success = await act(async () => {
@@ -188,5 +193,6 @@ describe('useShare', () => {
 
     expect(success).toBe(false);
     expect(result.current.error).toBe('Clipboard blocked');
+    execSpy.mockRestore();
   });
 });
