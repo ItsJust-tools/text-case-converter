@@ -9,6 +9,7 @@ import NotFound from '@/app/not-found';
 import { JsonLd } from '@/app/json-ld';
 import ToolPage from '@/app/page';
 import HelpPage from '@/app/help/page';
+import RootLayout from '@/app/layout';
 import { cn } from '@/lib/utils';
 import { generateSeoMetadata } from '@/lib/seo';
 import toolConfig from '@/tool/tool.config';
@@ -76,6 +77,19 @@ describe('app and seo', () => {
     render(<NotFound />);
     expect(screen.getByText('Page not found')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Go home' })).toHaveAttribute('href', '/');
+  });
+
+  it('renders a skip-to-content bypass link in the root layout', () => {
+    render(
+      <RootLayout>
+        <div>page-content</div>
+      </RootLayout>
+    );
+
+    const skipLink = screen.getByRole('link', { name: /skip to main content/i });
+    expect(skipLink).toBeInTheDocument();
+    expect(skipLink).toHaveAttribute('href', '#main-content');
+    expect(screen.getByText('page-content')).toBeInTheDocument();
   });
 
   it('renders top-level tool page', () => {
