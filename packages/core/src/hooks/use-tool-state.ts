@@ -4,24 +4,21 @@ import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import type { AutoSaveOptions, ToolState } from '../types';
 import { defaultAutoSaveOptions } from '../types';
 import { StorageManager } from '../engines/storage-manager';
+import { safeSetItem, safeGetItem } from '../lib/safe-storage';
 
 const HISTORY_KEY = (key: string) => `itsjust:history:${key}`;
 const NAMESPACE_KEY = 'itsjust:storage-namespace';
 
 function initStorageNamespace(): string {
   if (typeof window === 'undefined') return 'default';
-  try {
-    const existing = localStorage.getItem(NAMESPACE_KEY);
-    if (existing) return existing;
-    const created =
-      typeof crypto !== 'undefined' && 'randomUUID' in crypto
-        ? crypto.randomUUID()
-        : `ns-${Date.now()}`;
-    localStorage.setItem(NAMESPACE_KEY, created);
-    return created;
-  } catch {
-    return 'default';
-  }
+  const existing = safeGetItem(localStorage, NAMESPACE_KEY);
+  if (existing) return existing;
+  const created =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `ns-${Date.now()}`;
+  safeSetItem(localStorage, NAMESPACE_KEY, created);
+  return created;
 }
 
 /**
@@ -73,7 +70,7 @@ export function useToolState<T>(initial: T, options: Partial<AutoSaveOptions> = 
     if (!opts.enabled) return;
     try {
       if (!historyStorage) return;
-      const raw = historyStorage.getItem(HISTORY_KEY(`${historyPrefix}:${opts.key}`));
+      const raw = safeGetItem(historyStorage, HISTORY_KEY(`${historyPrefix}:${opts.key}`));
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed.history) && parsed.history.length > 0) {
@@ -105,22 +102,13 @@ export function useToolState<T>(initial: T, options: Partial<AutoSaveOptions> = 
   }, [opts.enabled, opts.key, opts.version, storage, historyPrefix, historyStorage]);
 
   // Persist history on change
-  const persistHistory = useCallback(async () => {
-    try {
-      if (!historyStorage) return false;
-      historyStorage.setItem(
-        HISTORY_KEY(`${historyPrefix}:${opts.key}`),
-        JSON.stringify({ history: historyRef.current, future: futureRef.current })
-      );
-      return true;
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-        console.warn(`[useToolState] Quota exceeded persisting history for "${opts.key}"`);
-      } else {
-        console.warn(`[useToolState] Failed to persist history for "${opts.key}"`, error);
-      }
-      return false;
-    }
+  const persistHistory = useCallback(async (): Promise<boolean> => {
+    if (!historyStorage) return false;
+    return safeSetItem(
+      historyStorage,
+      HISTORY_KEY(`${historyPrefix}:${opts.key}`),
+      JSON.stringify({ history: historyRef.current, future: futureRef.current })
+    );
   }, [opts.key, historyPrefix, historyStorage]);
 
   useEffect(() => {
@@ -137,15 +125,13 @@ export function useToolState<T>(initial: T, options: Partial<AutoSaveOptions> = 
     timerRef.current = setTimeout(async () => {
       setIsSaving(true);
       try {
-        await storage.save(opts.key, data, opts.version);
-        setSavedData(data);
-        setLastSaved(new Date().toISOString());
+        const saved = await storage.save(opts.key, data, opts.version);
+        if (saved) {
+          setSavedData(data);
+          setLastSaved(new Date().toISOString());
+        }
         await persistHistory();
         firstDirtyAtRef.current = null;
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-          console.warn(`[useToolState] Quota exceeded saving state for "${opts.key}"`);
-        }
       } finally {
         setIsSaving(false);
       }
@@ -241,13 +227,13 @@ export function useToolState<T>(initial: T, options: Partial<AutoSaveOptions> = 
     if (timerRef.current) clearTimeout(timerRef.current);
     setIsSaving(true);
     try {
-      await storage.save(opts.key, data, opts.version);
-      setSavedData(data);
-      setLastSaved(new Date().toISOString());
+      const saved = await storage.save(opts.key, data, opts.version);
+      if (saved) {
+        setSavedData(data);
+        setLastSaved(new Date().toISOString());
+      }
       await persistHistory();
       firstDirtyAtRef.current = null;
-    } catch {
-      // storage failure is silent by design — caller can observe isDirty
     } finally {
       setIsSaving(false);
     }

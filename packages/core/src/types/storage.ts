@@ -17,7 +17,7 @@ export interface AutoSaveOptions {
       key: string,
       expectedVersion?: string
     ) => { status: 'missing' | 'ok' | 'corrupt'; data: T | null };
-    save: <T>(key: string, data: T, version?: string) => Promise<void>;
+    save: <T>(key: string, data: T, version?: string) => Promise<boolean>;
   };
   historyStorage?: Pick<Storage, 'getItem' | 'setItem'>;
   historyNamespace?: string;
