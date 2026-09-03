@@ -51,6 +51,26 @@ describe('ToolShell', () => {
     expect(screen.getByText('status-content')).toBeInTheDocument();
   });
 
+  it('renders a skip-to-content bypass link targeting the main canvas', () => {
+    render(
+      <ToolShell
+        config={config}
+        toolbar={<div>toolbar-content</div>}
+        sidebar={<button type="button">inside-sidebar</button>}
+        canvas={<div>canvas-content</div>}
+        statusBar={<div>status-content</div>}
+      />
+    );
+
+    const skipLink = screen.getByRole('link', { name: /skip to content/i });
+    expect(skipLink).toBeInTheDocument();
+    expect(skipLink).toHaveAttribute('href', '#tool-canvas');
+
+    // The main canvas must expose the target id so the bypass link works.
+    const main = screen.getByRole('main', { name: 'Canvas' });
+    expect(main).toHaveAttribute('id', 'tool-canvas');
+  });
+
   it('calls undo, redo and reset actions', () => {
     const onUndo = vi.fn();
     const onRedo = vi.fn();
