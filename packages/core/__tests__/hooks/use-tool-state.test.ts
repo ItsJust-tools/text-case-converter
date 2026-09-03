@@ -162,7 +162,7 @@ describe('useToolState', () => {
     });
 
     expect(result.current.data).toBe('change');
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Quota exceeded'));
+    expect(warnSpy.mock.calls[0][0]).toContain('quota exceeded');
     warnSpy.mockRestore();
   });
 });

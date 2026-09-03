@@ -1,5 +1,11 @@
 import type { StorageData } from '../types';
 import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
+import {
+  safeSetItem,
+  safeGetItem,
+  safeRemoveItem,
+  type StorageWarningHandler,
+} from '../lib/safe-storage';
 
 export type StorageLoadStatus = 'missing' | 'ok' | 'corrupt';
 
@@ -23,7 +29,12 @@ export class StorageManager {
     return `${this.prefix}:${k}`;
   }
 
-  async save<T>(key: string, data: T, version?: string): Promise<void> {
+  async save<T>(
+    key: string,
+    data: T,
+    version?: string,
+    onWarning?: StorageWarningHandler
+  ): Promise<boolean> {
     const serialized = JSON.stringify(data);
     let storedData: unknown = data;
     let encoding: StorageData<unknown>['encoding'] = 'plain';
@@ -40,20 +51,11 @@ export class StorageManager {
       version: version ?? this.defaultVersion ?? '1.0.0',
       encoding,
     };
-    try {
-      localStorage.setItem(this.key(key), JSON.stringify(entry));
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-        console.warn(`[StorageManager] Quota exceeded saving "${key}"`);
-      } else {
-        console.warn(`[StorageManager] Failed to save "${key}":`, error);
-      }
-      throw error;
-    }
+    return safeSetItem(localStorage, this.key(key), JSON.stringify(entry), onWarning);
   }
 
   loadEntry<T>(key: string, expectedVersion?: string): StorageLoadResult<T> {
-    const raw = localStorage.getItem(this.key(key));
+    const raw = safeGetItem(localStorage, this.key(key));
     if (!raw) return { status: 'missing', data: null };
     try {
       const entry: StorageData<unknown> = JSON.parse(raw);
@@ -84,7 +86,7 @@ export class StorageManager {
   }
 
   remove(key: string): void {
-    localStorage.removeItem(this.key(key));
+    safeRemoveItem(localStorage, this.key(key));
   }
 }
 
