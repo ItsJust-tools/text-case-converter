@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { copyTextToClipboard } from '../lib/clipboard';
 import type { ShareData, ShareResult } from '../types';
 
 export interface ShareFileResult extends ShareResult {
@@ -138,7 +139,10 @@ export function useShare() {
       return withShareOperation(async () => {
         const blob = createShareFile(data);
         const text = await blob.text();
-        await navigator.clipboard.writeText(text);
+        const ok = await copyTextToClipboard(text);
+        if (!ok) {
+          throw new Error('Clipboard blocked');
+        }
 
         setShareResult({
           id: 'clipboard',

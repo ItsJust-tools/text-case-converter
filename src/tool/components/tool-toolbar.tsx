@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import Link from 'next/link';
+import { readTextFromClipboard } from '@itsjust/core';
 
 /** Props for the ToolToolbar component. */
 interface ToolToolbarProps {
@@ -33,11 +34,9 @@ export function ToolToolbar({
   onCopyOutput,
 }: ToolToolbarProps) {
   const handlePaste = useCallback(async () => {
-    try {
-      const text = await navigator.clipboard.readText();
+    const text = await readTextFromClipboard();
+    if (text != null) {
       onPaste?.(text);
-    } catch {
-      // Clipboard read not available — silently fail
     }
   }, [onPaste]);
 

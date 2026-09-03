@@ -10,7 +10,7 @@ import {
   ToolSidebar,
   ALL_VALID_MODES,
 } from '@/tool';
-import { ToolShell, useTool } from '@itsjust/core';
+import { ToolShell, useTool, copyTextToClipboard } from '@itsjust/core';
 import { convertCaseLines } from '@/tool/lib/case-converter';
 import type { TextCaseState } from '@/tool/types';
 
@@ -234,10 +234,10 @@ export default function ToolClient() {
     }
     const output = convertCaseLines(input, mode, lineByLine);
     setToolData((prev) => ({ ...prev, lastOutput: output }));
-    try {
-      await navigator.clipboard.writeText(output);
+    const ok = await copyTextToClipboard(output);
+    if (ok) {
       showToast('Copied to clipboard', 'success');
-    } catch {
+    } else {
       showToast('Failed to copy', 'error');
     }
   }, [tool.state.data, setToolData, showToast]);

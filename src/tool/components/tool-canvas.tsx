@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { convertCaseLines, getModeLabel, getModeDescription } from '../lib/case-converter';
+import { copyTextToClipboard } from '@itsjust/core';
 import type { TextCaseState } from '../types';
 
 /** Props for the ToolCanvas component. */
@@ -65,20 +66,17 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
    */
   const handleCopy = useCallback(async () => {
     if (!output) return;
-    try {
-      await navigator.clipboard.writeText(output);
-      // Sync lastOutput so keyboard shortcuts and exports use the latest result
-      onChange({ lastOutput: output });
-      onCopy?.();
-      setCopied(true);
-      setCopyAnimating(true);
-      setTimeout(() => {
-        setCopied(false);
-        setCopyAnimating(false);
-      }, 2000);
-    } catch {
-      // Clipboard unavailable — silently fail, the button remains enabled
-    }
+    const ok = await copyTextToClipboard(output);
+    if (!ok) return;
+    // Sync lastOutput so keyboard shortcuts and exports use the latest result
+    onChange({ lastOutput: output });
+    onCopy?.();
+    setCopied(true);
+    setCopyAnimating(true);
+    setTimeout(() => {
+      setCopied(false);
+      setCopyAnimating(false);
+    }, 2000);
   }, [output, onChange, onCopy]);
 
   const chars = state.input.length;
