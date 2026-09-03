@@ -6,7 +6,7 @@
  * Run: node scripts/preflight.mjs
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
 
 const ROOT = resolve(process.cwd());
@@ -244,6 +244,51 @@ if (pkg) {
   } else {
     ok('Dependencies match declared export formats');
   }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+section('🎨 CSS Performance (transition-all guard)');
+// ═════════════════════════════════════════════════════════════════════════════
+
+// `transition-all` (or `transition-property: all`) forces the engine to animate
+// expensive layout properties (width, height, margin, padding), causing composite
+// recalculations and 60fps drops on low-powered devices. Use specific composite
+// properties (transition-colors, transition-opacity, transition-transform, etc.).
+
+function collectCssFiles(dir, out = []) {
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const entry of entries) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectCssFiles(full, out);
+    } else if (entry.name.endsWith('.css')) {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
+const cssFiles = [
+  ...collectCssFiles('src'),
+  ...collectCssFiles('packages/core/src'),
+];
+const cssPerformance = /transition(-property)?\s*:\s*(all\b)|\btransition-all\b/;
+const offenders = [];
+for (const file of cssFiles) {
+  const text = readText(file);
+  if (text && cssPerformance.test(text)) {
+    offenders.push(file);
+  }
+}
+if (offenders.length === 0) {
+  ok('No generic transition-all / transition-property: all in CSS files');
+} else {
+  error(`Generic transition-all found in: ${offenders.join(', ')}. Refactor to specific composite properties.`);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
