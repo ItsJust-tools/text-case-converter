@@ -5,6 +5,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
     "ignoreDeprecations": "6.0",
     "noEmit": true,
