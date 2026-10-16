@@ -236,3 +236,129 @@ test('visual regression — default view', async ({ page, browserName }) => {
   await page.waitForSelector('.tool-shell-canvas');
   await expect(page.locator('.tool-shell')).toBeVisible();
 });
+
+test('state persists across page reload', async ({ page }) => {
+  await page.goto('/');
+  await ensureToolbarInteractable(page);
+
+  // Enter text and set mode
+  const textarea = page.locator('.case-textarea');
+  await textarea.fill('Test State Persistence');
+
+  const upperBtn = page.getByRole('button', { name: /uppercase/i }).first();
+  await upperBtn.click();
+  const convertBtn = page.getByRole('button', { name: /convert/i });
+  await convertBtn.click();
+
+  // Verify text is converted
+  const output = page.locator('.case-output');
+  await expect(output).toContainText('TEST STATE PERSISTENCE');
+
+  // Reload the page
+  await page.reload();
+
+  // Wait for page to load and verify state is restored
+  await page.waitForLoadState('networkidle');
+  await textarea.waitFor({ state: 'visible' });
+
+  // The textarea should still have the input text
+  await expect.poll(async () => textarea.inputValue()).toContain('Test State Persistence');
+});
+
+test('keyboard shortcut Ctrl+Z triggers undo', async ({ page }) => {
+  await page.goto('/');
+  await ensureToolbarInteractable(page);
+
+  const textarea = page.locator('.case-textarea');
+  await textarea.fill('Original Text');
+
+  // Type over the text (simulating an edit)
+  await textarea.fill('Modified Text');
+
+  // Use Ctrl+Z to undo
+  await page.keyboard.press('Ctrl+Z');
+  await page.waitForTimeout(100);
+
+  // Text should be restored to original
+  await expect.poll(async () => textarea.inputValue()).toContain('Original Text');
+});
+
+test('keyboard shortcut Ctrl+S triggers export dialog', async ({ page, browserName }) => {
+  if (browserName !== 'chromium') return;
+
+  await page.goto('/');
+  await ensureToolbarInteractable(page);
+
+  const textarea = page.locator('.case-textarea');
+  await textarea.fill('Export Test Content');
+
+  const upperBtn = page.getByRole('button', { name: /uppercase/i }).first();
+  await upperBtn.click();
+  const convertBtn = page.getByRole('button', { name: /convert/i });
+  await convertBtn.click();
+
+  // Open export dialog with Ctrl+S
+  await page.keyboard.press('Ctrl+S');
+  await page.waitForTimeout(100);
+
+  // Export dialog should be visible
+  await expect(page.getByRole('menu')).toBeVisible();
+});
+
+test('export JSON payload contains correct data', async ({ page }) => {
+  await page.goto('/');
+  await ensureToolbarInteractable(page);
+
+  const textarea = page.locator('.case-textarea');
+  await textarea.fill('Test Export Content');
+
+  const upperBtn = page.getByRole('button', { name: /uppercase/i }).first();
+  await upperBtn.click();
+  const convertBtn = page.getByRole('button', { name: /convert/i });
+  await convertBtn.click();
+
+  const exportButton = page.getByRole('button', { name: /export/i });
+  await exportButton.click({ force: true });
+
+  // Wait for export and intercept the JSON content
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('option', { name: /JSON/ }).click(),
+  ]);
+
+  // Read the downloaded file content
+  const path = await download.path();
+  expect(path).toBeTruthy();
+
+  const content = await require('fs/promises').readFile(path!, 'utf-8');
+  const parsed = JSON.parse(content);
+
+  // Verify export structure
+  expect(parsed).toHaveProperty('input', 'Test Export Content');
+  expect(parsed.mode).toBe('uppercase');
+  expect(parsed.output).toBe('TEST EXPORT CONTENT');
+});
+
+test('theme toggle persists across page reload', async ({ page }) => {
+  await page.goto('/');
+  await ensureToolbarInteractable(page);
+
+  const themeButton = page.getByRole('button', { name: /Switch to dark mode/i });
+
+  // Only run this test if dark mode is available
+  if (!(await themeButton.isVisible())) {
+    test.skip();
+    return;
+  }
+
+  // Enable dark mode
+  await themeButton.click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+  // Reload the page
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+
+  // Dark theme should persist
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+});
