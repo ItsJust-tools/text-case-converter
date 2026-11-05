@@ -48,7 +48,7 @@ describe('StorageManager', () => {
 
     const ok = await manager.save('overflow', 'x'.repeat(1024));
     expect(ok).toBe(false);
-    expect(warnSpy.mock.calls[0][0]).toContain('quota exceeded');
+    expect(warnSpy.mock.calls[0]?.[0] ?? '').toContain('quota exceeded');
     warnSpy.mockRestore();
   });
 
@@ -90,7 +90,7 @@ describe('StorageManager', () => {
 
     const ok = await manager.save('blocked', 'value');
     expect(ok).toBe(false);
-    expect(warnSpy.mock.calls[0][0]).toContain('Storage is unavailable');
+    expect(warnSpy.mock.calls[0]?.[0] ?? '').toContain('Storage is unavailable');
     warnSpy.mockRestore();
   });
 });
