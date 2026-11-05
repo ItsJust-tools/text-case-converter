@@ -766,4 +766,20 @@ describe('TextCaseTool locale serialization', () => {
       expect(result.data.locale).toBeUndefined();
     }
   });
+
+  it('returns failure instead of throwing on throwing getters (try/catch guard)', () => {
+    const throwingData = {
+      get input(): string {
+        throw new Error('corrupted getter');
+      },
+      mode: 'lowercase',
+    };
+    expect(() => textCaseTool.deserialize(throwingData)).not.toThrow();
+    const result = textCaseTool.deserialize(throwingData);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain('Failed to deserialize state');
+      expect(result.error).toContain('corrupted getter');
+    }
+  });
 });

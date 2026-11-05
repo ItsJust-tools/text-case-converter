@@ -73,23 +73,30 @@ export const textCaseTool: Tool<TextCaseState> = {
       2
     ),
   deserialize: (data) => {
-    if (isTextCaseState(data)) {
+    try {
+      if (isTextCaseState(data)) {
+        return {
+          success: true,
+          data: {
+            input: data.input,
+            mode: data.mode,
+            lastOutput: data.lastOutput ?? '',
+            lineByLine: data.lineByLine ?? false,
+            locale: data.locale,
+          },
+        };
+      }
+      const validModes = VALID_MODES.join(', ');
       return {
-        success: true,
-        data: {
-          input: data.input,
-          mode: data.mode,
-          lastOutput: data.lastOutput ?? '',
-          lineByLine: data.lineByLine ?? false,
-          locale: data.locale,
-        },
+        success: false,
+        error: `Invalid data format: expected { input: string, mode: CaseMode } — valid modes: ${validModes}`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to deserialize state: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
-    const validModes = VALID_MODES.join(', ');
-    return {
-      success: false,
-      error: `Invalid data format: expected { input: string, mode: CaseMode } — valid modes: ${validModes}`,
-    };
   },
   exporters: [],
 };

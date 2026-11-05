@@ -14,7 +14,7 @@ import { join, extname, relative } from 'path';
 
 const ROOT = process.cwd();
 
-function collectCssFiles(dir, out = []) {
+function collectCssFiles(dir: string, out: string[] = []): string[] {
   if (!existsSync(dir)) return out;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
@@ -36,7 +36,7 @@ function allCssFiles() {
 
 describe('CSS performance (issue #38)', () => {
   it('does not use generic transition-all or transition-property: all', () => {
-    const offenders = [];
+    const offenders: string[] = [];
     for (const file of allCssFiles()) {
       const text = readFileSync(file, 'utf-8');
       // Match either `transition: all`, `transition-property: all` or `transition-all`.
@@ -54,7 +54,7 @@ describe('CSS performance (issue #38)', () => {
     const files = allCssFiles();
     // Sanity: the guard above must actually scan files.
     expect(files.length).toBeGreaterThan(0);
-    const sample = files[0];
+    const sample = files[0]!;
     expect(statSync(sample).size).toBeGreaterThan(0);
   });
 });

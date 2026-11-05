@@ -41,7 +41,7 @@ describe('safe-storage', () => {
     const ok = safeSetItem(localStorage, 'big', 'x'.repeat(1024), onWarning);
     expect(ok).toBe(false);
     expect(onWarning).toHaveBeenCalledTimes(1);
-    expect(onWarning.mock.calls[0][0]).toContain('quota exceeded');
+    expect(onWarning.mock.calls[0]?.[0] ?? '').toContain('quota exceeded');
     expect(warnSpy).toHaveBeenCalled();
     warnSpy.mockRestore();
   });
