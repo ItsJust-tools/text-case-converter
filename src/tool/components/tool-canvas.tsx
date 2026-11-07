@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { convertCaseLines, getModeLabel, getModeDescription } from '../lib/case-converter';
+import { convertCaseFull, getModeLabel, getModeDescription } from '../lib/case-converter';
 import { copyTextToClipboard } from '@itsjust/core';
 import type { TextCaseState } from '../types';
 
@@ -36,11 +36,17 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
     const trimmed = state.input.trim();
     if (!trimmed) return '';
     try {
-      return convertCaseLines(state.input, state.mode, state.lineByLine, state.locale);
+      return convertCaseFull(
+        state.input,
+        state.mode,
+        state.lineByLine,
+        state.locale,
+        state.customDelimiter
+      );
     } catch {
       return '(conversion error)';
     }
-  }, [state.input, state.mode, state.lineByLine, state.locale]);
+  }, [state.input, state.mode, state.lineByLine, state.locale, state.customDelimiter]);
 
   // Auto-resize the textarea on input change
   useEffect(() => {

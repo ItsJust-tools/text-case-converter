@@ -407,6 +407,118 @@ export function convertCaseLines(
 }
 
 /**
+ * Converts text according to the specified case mode, then applies a custom
+ * delimiter when one is configured.
+ *
+ * @param input - The text to convert.
+ * @param mode - The case transformation mode to apply.
+ * @param locale - Optional locale for case conversion.
+ * @param customDelimiter - Optional custom delimiter to join words with.
+ * @returns The converted text, or an empty string if input is empty.
+ */
+export function convertCaseWithDelimiter(
+  input: string,
+  mode: CaseMode,
+  locale?: string,
+  customDelimiter?: string
+): string {
+  const converted = convertCase(input, mode, locale);
+  if (!customDelimiter) return converted;
+  return applyCustomDelimiter(converted, customDelimiter);
+}
+
+/**
+ * Normalizes a raw, human-entered delimiter string into a single
+ * delimiter token.
+ *
+ * - Empty or whitespace-only strings mean "no custom delimiter" (undefined).
+ * - Named tokens are supported for otherwise awkward characters:
+ *   "space" -> " ", "tab" -> "\t", "newline"/"new line" -> "\n".
+ * - Any other string is truncated to its first character.
+ *
+ * @param raw - The raw delimiter string from the UI.
+ * @returns A single-character delimiter, or undefined for none.
+ */
+export function normalizeDelimiter(raw: string | undefined): string | undefined {
+  if (raw === undefined) return undefined;
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  const named: Record<string, string> = {
+    space: ' ',
+    tab: '\t',
+    newline: '\n',
+    'new line': '\n',
+  };
+  const key = trimmed.toLowerCase();
+  if (key in named) return named[key];
+  return Array.from(trimmed)[0] ?? trimmed[0];
+}
+
+/**
+ * Replaces existing word separators (spaces, hyphens, underscores, dots and
+ * camelCase/hyphen boundaries already normalized to spaces) in a converted
+ * string with the custom delimiter. Only separator characters are replaced —
+ * the words themselves are untouched, so case modes like UPPERCASE keep
+ * their letter casing.
+ *
+ * @param converted - Text that has already been through a case mode.
+ * @param delimiter - The custom delimiter to join words with.
+ * @returns The text with separators replaced by the custom delimiter.
+ */
+function applyCustomDelimiter(converted: string, delimiter: string): string {
+  if (!converted) return '';
+  const raw = Array.from(converted);
+  const out: string[] = [];
+  let pendingSep = false;
+  for (const ch of raw) {
+    if (/[\s_.-]/.test(ch)) {
+      // Collapse runs of separators into a single delimiter, and skip
+      // leading/trailing separators entirely.
+      if (out.length > 0) pendingSep = true;
+    } else {
+      if (pendingSep) {
+        out.push(delimiter);
+        pendingSep = false;
+      }
+      out.push(ch);
+    }
+  }
+  return out.join('');
+}
+
+/**
+ * Converts text according to the specified case mode, processing each line
+ * independently when {@link lineByLine} is true. Empty lines are preserved.
+ * When {@link customDelimiter} is set, word separators in the converted text
+ * are replaced with that delimiter.
+ *
+ * @param input - The text to convert.
+ * @param mode - The case transformation mode to apply.
+ * @param lineByLine - When true, each line is converted independently.
+ * @param locale - Optional locale for case conversion.
+ * @param customDelimiter - Optional custom delimiter to join words with.
+ * @returns The converted text, or an empty string if input is empty.
+ */
+export function convertCaseFull(
+  input: string,
+  mode: CaseMode,
+  lineByLine: boolean,
+  locale?: string,
+  customDelimiter?: string
+): string {
+  if (!input) return '';
+  const delim = normalizeDelimiter(customDelimiter);
+  if (!delim) return convertCaseLines(input, mode, lineByLine, locale);
+  if (!lineByLine) {
+    return convertCaseWithDelimiter(input, mode, locale, delim);
+  }
+  // Preserve trailing newline if present — split keeps trailing empty entries
+  const lines = input.split('\n');
+  const converted = lines.map((line) => convertCaseWithDelimiter(line, mode, locale, delim));
+  return converted.join('\n');
+}
+
+/**
  * Returns a human-readable description of what a case mode does.
  *
  * @param mode - The case mode to describe.
