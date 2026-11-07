@@ -41,12 +41,20 @@ export function ToolCanvas({ state, canvasRef, onChange, onCopy }: ToolCanvasPro
         state.mode,
         state.lineByLine,
         state.locale,
-        state.customDelimiter
+        state.customDelimiter,
+        state.stripDiacritics
       );
     } catch {
       return '(conversion error)';
     }
-  }, [state.input, state.mode, state.lineByLine, state.locale, state.customDelimiter]);
+  }, [
+    state.input,
+    state.mode,
+    state.lineByLine,
+    state.locale,
+    state.customDelimiter,
+    state.stripDiacritics,
+  ]);
 
   // Auto-resize the textarea on input change
   useEffect(() => {

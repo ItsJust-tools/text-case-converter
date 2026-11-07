@@ -41,7 +41,8 @@ function isTextCaseState(value: unknown): value is TextCaseState {
     (v.lastOutput === undefined || typeof v.lastOutput === 'string') &&
     (v.lineByLine === undefined || typeof v.lineByLine === 'boolean') &&
     (v.customDelimiter === undefined || typeof v.customDelimiter === 'string') &&
-    (v.locale === undefined || typeof v.locale === 'string')
+    (v.locale === undefined || typeof v.locale === 'string') &&
+    (v.stripDiacritics === undefined || typeof v.stripDiacritics === 'boolean')
   );
 }
 
@@ -61,6 +62,7 @@ export const textCaseTool: Tool<TextCaseState> = {
     lineByLine: false,
     customDelimiter: undefined,
     locale: undefined,
+    stripDiacritics: false,
   },
   serialize: (state) =>
     JSON.stringify(
@@ -71,6 +73,7 @@ export const textCaseTool: Tool<TextCaseState> = {
         lineByLine: state.lineByLine,
         customDelimiter: state.customDelimiter,
         locale: state.locale,
+        stripDiacritics: state.stripDiacritics,
       },
       null,
       2
@@ -87,6 +90,7 @@ export const textCaseTool: Tool<TextCaseState> = {
             lineByLine: data.lineByLine ?? false,
             customDelimiter: data.customDelimiter,
             locale: data.locale,
+            stripDiacritics: data.stripDiacritics ?? false,
           },
         };
       }

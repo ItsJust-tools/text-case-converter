@@ -32,6 +32,72 @@ function toUpperFirst(word: string, locale?: string): string {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Diacritic / Unicode transliteration support
+// ---------------------------------------------------------------------------
+
+/**
+ * Extra transliteration map for characters that decompose cannot handle:
+ * German ligatures and Nordic/Slavic digraph-like letters.
+ * Keys are built via code points so the source stays ASCII-safe.
+ */
+const TRANSLIT_MAP: Record<string, string> = Object.fromEntries(
+  [
+    [0x00df, 'ss'], // ß
+    [0x00e6, 'ae'], // æ
+    [0x00c6, 'AE'], // Æ
+    [0x00f8, 'o'], // ø
+    [0x00d8, 'O'], // Ø
+    [0x00e5, 'a'], // å
+    [0x00c5, 'A'], // Å
+    [0x0153, 'oe'], // œ
+    [0x0152, 'OE'], // Œ
+    [0x0111, 'd'], // đ
+    [0x0110, 'D'], // Đ
+    [0x0142, 'l'], // ł
+    [0x0141, 'L'], // Ł
+    [0x00fe, 'th'], // þ
+    [0x00de, 'TH'], // Þ
+    [0x00f0, 'd'], // ð
+    [0x00d0, 'D'], // Ð
+  ].map(([cp, replacement]) => [String.fromCodePoint(Number(cp)), replacement as string])
+);
+
+/**
+ * Transliterates a string to its closest ASCII equivalent.
+ * Accented Latin letters are decomposed into base letter + combining marks
+ * and the marks are removed (e.g. "é" -> "e", "ü" -> "u"). Characters with no
+ * ASCII equivalent that are not letters (e.g. CJK, emoji) are left untouched,
+ * while non-ASCII letters without a mapping are dropped so programmatic
+ * identifiers stay clean.
+ *
+ * @param input - The string to transliterate.
+ * @returns The transliterated string (may be longer or shorter than the input).
+ */
+export function transliterate(input: string): string {
+  return Array.from(input.normalize('NFD').replace(/\p{M}/gu, ''))
+    .map((ch) => {
+      const mapped = TRANSLIT_MAP[ch];
+      if (mapped !== undefined) return mapped;
+      if (ch.charCodeAt(0) < 128) return ch;
+      // Non-ASCII letter with no mapping: drop; non-letter (symbols, CJK,
+      // emoji): keep so word structure is preserved.
+      return /\p{L}/u.test(ch) ? '' : ch;
+    })
+    .join('');
+}
+
+/**
+ * Applies an optional diacritic-stripping pre-pass before case conversion.
+ *
+ * @param input - The text to preprocess.
+ * @param stripDiacritics - When true, accents are transliterated to ASCII.
+ * @returns The (possibly transliterated) text.
+ */
+function preprocessDiacritics(input: string, stripDiacritics?: boolean): string {
+  return stripDiacritics ? transliterate(input) : input;
+}
+
 /**
  * Converts text according to the specified case mode.
  *
@@ -39,42 +105,48 @@ function toUpperFirst(word: string, locale?: string): string {
  * @param mode - The case transformation mode to apply.
  * @returns The converted text, or an empty string if input is empty.
  */
-export function convertCase(input: string, mode: CaseMode, locale?: string): string {
+export function convertCase(
+  input: string,
+  mode: CaseMode,
+  locale?: string,
+  stripDiacritics?: boolean
+): string {
   // Fast-path: no input to convert
   if (!input) return '';
+  const text = preprocessDiacritics(input, stripDiacritics);
   switch (mode) {
     case 'lowercase':
-      return locale ? input.toLocaleLowerCase(locale) : input.toLowerCase();
+      return locale ? text.toLocaleLowerCase(locale) : text.toLowerCase();
     case 'uppercase':
-      return locale ? input.toLocaleUpperCase(locale) : input.toUpperCase();
+      return locale ? text.toLocaleUpperCase(locale) : text.toUpperCase();
     case 'capitalize':
-      return capitalizeWords(input, locale);
+      return capitalizeWords(text, locale);
     case 'title-case':
-      return titleCase(input, locale);
+      return titleCase(text, locale);
     case 'sentence-case':
-      return toSentenceCase(input, locale);
+      return toSentenceCase(text, locale);
     case 'camelCase':
-      return toCamelCase(input, locale);
+      return toCamelCase(text, locale);
     case 'PascalCase':
-      return toPascalCase(input, locale);
+      return toPascalCase(text, locale);
     case 'snake_case':
-      return toSnakeCase(input, locale);
+      return toSnakeCase(text, locale);
     case 'SCREAMING_SNAKE_CASE':
-      return toScreamingSnakeCase(input, locale);
+      return toScreamingSnakeCase(text, locale);
     case 'kebab-case':
-      return toKebabCase(input, locale);
+      return toKebabCase(text, locale);
     case 'train-case':
-      return toTrainCase(input, locale);
+      return toTrainCase(text, locale);
     case 'SCREAMING-KEBAB-CASE':
-      return toScreamingKebabCase(input, locale);
+      return toScreamingKebabCase(text, locale);
     case 'dot.case':
-      return toDotCase(input, locale);
+      return toDotCase(text, locale);
     case 'flatcase':
-      return toFlatCase(input, locale);
+      return toFlatCase(text, locale);
     case 'alternating':
-      return toAlternatingCase(input, locale);
+      return toAlternatingCase(text, locale);
     case 'inverse':
-      return toInverseCase(input, locale);
+      return toInverseCase(text, locale);
     default:
       // Exhaustiveness guard: if TypeScript complains here, a CaseMode is unhandled
       mode satisfies never;
@@ -396,13 +468,14 @@ export function convertCaseLines(
   input: string,
   mode: CaseMode,
   lineByLine: boolean,
-  locale?: string
+  locale?: string,
+  stripDiacritics?: boolean
 ): string {
   if (!input) return '';
-  if (!lineByLine) return convertCase(input, mode, locale);
+  if (!lineByLine) return convertCase(input, mode, locale, stripDiacritics);
   // Preserve trailing newline if present — split keeps trailing empty entries
   const lines = input.split('\n');
-  const converted = lines.map((line) => convertCase(line, mode, locale));
+  const converted = lines.map((line) => convertCase(line, mode, locale, stripDiacritics));
   return converted.join('\n');
 }
 
@@ -420,9 +493,10 @@ export function convertCaseWithDelimiter(
   input: string,
   mode: CaseMode,
   locale?: string,
-  customDelimiter?: string
+  customDelimiter?: string,
+  stripDiacritics?: boolean
 ): string {
-  const converted = convertCase(input, mode, locale);
+  const converted = convertCase(input, mode, locale, stripDiacritics);
   if (!customDelimiter) return converted;
   return applyCustomDelimiter(converted, customDelimiter);
 }
@@ -504,17 +578,20 @@ export function convertCaseFull(
   mode: CaseMode,
   lineByLine: boolean,
   locale?: string,
-  customDelimiter?: string
+  customDelimiter?: string,
+  stripDiacritics?: boolean
 ): string {
   if (!input) return '';
   const delim = normalizeDelimiter(customDelimiter);
-  if (!delim) return convertCaseLines(input, mode, lineByLine, locale);
+  if (!delim) return convertCaseLines(input, mode, lineByLine, locale, stripDiacritics);
   if (!lineByLine) {
-    return convertCaseWithDelimiter(input, mode, locale, delim);
+    return convertCaseWithDelimiter(input, mode, locale, delim, stripDiacritics);
   }
   // Preserve trailing newline if present — split keeps trailing empty entries
   const lines = input.split('\n');
-  const converted = lines.map((line) => convertCaseWithDelimiter(line, mode, locale, delim));
+  const converted = lines.map((line) =>
+    convertCaseWithDelimiter(line, mode, locale, delim, stripDiacritics)
+  );
   return converted.join('\n');
 }
 

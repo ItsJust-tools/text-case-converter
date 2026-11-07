@@ -35,4 +35,10 @@ export interface TextCaseState {
   customDelimiter?: string;
   /** Optional locale for case conversion (e.g. "tr" for Turkish, "de" for German) */
   locale?: string;
+  /**
+   * When enabled, accented characters are transliterated to ASCII equivalents
+   * (e.g. "ä" -> "ae", "é" -> "e", "ß" -> "ss") before converting to
+   * programmatic identifiers (camelCase, snake_case, etc.)
+   */
+  stripDiacritics?: boolean;
 }

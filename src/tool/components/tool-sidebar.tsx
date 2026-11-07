@@ -173,6 +173,23 @@ export function ToolSidebar({
         </select>
       </div>
 
+      {/* Diacritic handling */}
+      <div className="sidebar-section">
+        <h3>Special Characters</h3>
+        <label
+          className="toggle-row"
+          title="When enabled, accented characters like ä, é, ñ are transliterated to ASCII (ae, e, n) before converting to code-style identifiers"
+        >
+          <input
+            type="checkbox"
+            className="toggle-input"
+            checked={state.stripDiacritics ?? false}
+            onChange={(e) => onChange({ stripDiacritics: e.target.checked || undefined })}
+          />
+          <span className="toggle-label">Strip diacritics (ä → ae)</span>
+        </label>
+      </div>
+
       {/* Stats */}
       <div className="sidebar-section">
         <h3>Statistics</h3>
