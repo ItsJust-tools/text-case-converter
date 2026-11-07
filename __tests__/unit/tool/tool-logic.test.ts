@@ -6,6 +6,7 @@ import {
   convertCaseLines,
   convertCaseFull,
   normalizeDelimiter,
+  transliterate,
   getModeDescription,
   getModeLabel,
   MODE_GROUPS,
@@ -898,6 +899,59 @@ describe('Custom delimiter + line-by-line (issue #25)', () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.customDelimiter).toBeUndefined();
+    }
+  });
+});
+
+describe('Diacritic / Unicode transliteration (issue #24)', () => {
+  it('transliterates accented characters to ASCII', () => {
+    expect(transliterate('café résumé')).toBe('cafe resume');
+    expect(transliterate('añejo')).toBe('anejo');
+  });
+
+  it('expands ligatures and special letters', () => {
+    expect(transliterate('straße')).toBe('strasse');
+    expect(transliterate('Æther')).toBe('AEther');
+    expect(transliterate('ø')).toBe('o');
+  });
+
+  it('keeps non-letter characters intact', () => {
+    expect(transliterate('100 € — 🎉')).toBe('100 € — 🎉');
+  });
+
+  it('keeps accents by default (no regression)', () => {
+    expect(convertCase('café', 'uppercase')).toBe('CAFÉ');
+  });
+
+  it('strips diacritics in code-style conversions when enabled', () => {
+    expect(convertCase('café crème', 'snake_case', undefined, true)).toBe('cafe_creme');
+    expect(convertCase('Größe ändern', 'kebab-case', undefined, true)).toBe(
+      'grosse-ändern'.replace('ändern', 'andern')
+    );
+    expect(convertCase('über Café', 'PascalCase', undefined, true)).toBe('UberCafe');
+  });
+
+  it('serializes and deserializes stripDiacritics', () => {
+    const state: TextCaseState = {
+      input: 'café',
+      mode: 'snake_case',
+      lastOutput: '',
+      lineByLine: false,
+      stripDiacritics: true,
+    };
+    const parsed = JSON.parse(textCaseTool.serialize(state)) as Partial<TextCaseState>;
+    const result = textCaseTool.deserialize(parsed);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.stripDiacritics).toBe(true);
+    }
+  });
+
+  it('deserialize defaults stripDiacritics to false', () => {
+    const result = textCaseTool.deserialize({ input: 'x y', mode: 'kebab-case' });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.stripDiacritics).toBe(false);
     }
   });
 });
