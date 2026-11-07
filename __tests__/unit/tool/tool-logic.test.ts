@@ -4,6 +4,8 @@ import { textCaseTool } from '@/tool/tool-definition';
 import {
   convertCase,
   convertCaseLines,
+  convertCaseFull,
+  normalizeDelimiter,
   getModeDescription,
   getModeLabel,
   MODE_GROUPS,
@@ -780,6 +782,122 @@ describe('TextCaseTool locale serialization', () => {
     if (!result.success) {
       expect(result.error).toContain('Failed to deserialize state');
       expect(result.error).toContain('corrupted getter');
+    }
+  });
+});
+
+describe('Custom delimiter + line-by-line (issue #25)', () => {
+  const delimCases = ['/', ',', '|', '_', '.'];
+
+  it('replaces word separators with a custom delimiter', () => {
+    for (const d of delimCases) {
+      expect(convertCaseFull('hello world', 'lowercase', false, undefined, d)).toBe(
+        `hello${d}world`
+      );
+    }
+  });
+
+  it('preserves the case mode letter casing when applying a custom delimiter', () => {
+    expect(convertCaseFull('hello world', 'uppercase', false, undefined, '/')).toBe('HELLO/WORLD');
+    expect(convertCaseFull('hello world', 'train-case', false, undefined, '/')).toBe('Hello/World');
+  });
+
+  it('applies custom delimiter line-by-line, preserving empty lines', () => {
+    expect(convertCaseFull('hello world\n\nfoo bar', 'lowercase', true, undefined, '/')).toBe(
+      'hello/world\n\nfoo/bar'
+    );
+  });
+
+  it('converts space-delimited text to a slash-separated list', () => {
+    expect(convertCaseFull('alpha beta gamma', 'lowercase', false, undefined, '/')).toBe(
+      'alpha/beta/gamma'
+    );
+  });
+
+  it('collapses runs of separators into a single delimiter', () => {
+    expect(convertCaseFull('hello   -_ world', 'lowercase', false, undefined, ',')).toBe(
+      'hello,world'
+    );
+  });
+
+  it('skips leading and trailing separators', () => {
+    expect(convertCaseFull('  hello world  ', 'lowercase', false, undefined, '/')).toBe(
+      'hello/world'
+    );
+  });
+
+  it('normalizes named tokens: space, tab, newline', () => {
+    expect(convertCaseFull('hello world', 'lowercase', false, undefined, 'space')).toBe(
+      'hello world'
+    );
+    expect(convertCaseFull('hello world', 'lowercase', false, undefined, 'tab')).toBe(
+      'hello\tworld'
+    );
+    expect(convertCaseFull('hello world', 'lowercase', false, undefined, 'newline')).toBe(
+      'hello\nworld'
+    );
+  });
+
+  it('uses only the first character of a multi-character delimiter', () => {
+    expect(convertCaseFull('hello world', 'lowercase', false, undefined, 'ab')).toBe('helloaworld');
+  });
+
+  it('treats empty/whitespace delimiter as no delimiter', () => {
+    expect(convertCaseFull('hello world', 'lowercase', false, undefined, '')).toBe('hello world');
+    expect(convertCaseFull('hello world', 'lowercase', false, undefined, '   ')).toBe(
+      'hello world'
+    );
+    expect(normalizeDelimiter('')).toBeUndefined();
+    expect(normalizeDelimiter(undefined)).toBeUndefined();
+  });
+
+  it('normalizeDelimiter preserves single-character delimiters', () => {
+    expect(normalizeDelimiter('/')).toBe('/');
+    expect(normalizeDelimiter(',')).toBe(',');
+    expect(normalizeDelimiter('|')).toBe('|');
+  });
+
+  it('no custom delimiter keeps previous convertCaseLines behavior', () => {
+    expect(convertCaseFull('hello world\nfoo bar', 'uppercase', true, undefined, undefined)).toBe(
+      'HELLO WORLD\nFOO BAR'
+    );
+    expect(convertCaseFull('hello world', 'camelCase', false, undefined, undefined)).toBe(
+      'helloWorld'
+    );
+  });
+
+  it('snake_case + custom dot delimiter yields dot.case-like output', () => {
+    expect(convertCaseFull('Hello World', 'snake_case', false, undefined, '.')).toBe('hello.world');
+  });
+
+  it('serialize/deserialize round-trips customDelimiter', () => {
+    const state: TextCaseState = {
+      input: 'a b',
+      mode: 'lowercase',
+      lastOutput: 'a/b',
+      lineByLine: true,
+      customDelimiter: '/',
+    };
+    const serialized = textCaseTool.serialize(state);
+    const parsed = JSON.parse(serialized) as Partial<TextCaseState> | null;
+    const result = textCaseTool.deserialize(parsed);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.customDelimiter).toBe('/');
+      expect(result.data.lineByLine).toBe(true);
+    }
+  });
+
+  it('deserialize accepts payloads without customDelimiter', () => {
+    const result = textCaseTool.deserialize({
+      input: 'x y',
+      mode: 'kebab-case',
+      lastOutput: '',
+      lineByLine: false,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.customDelimiter).toBeUndefined();
     }
   });
 });

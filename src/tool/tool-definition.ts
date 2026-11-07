@@ -40,6 +40,7 @@ function isTextCaseState(value: unknown): value is TextCaseState {
     VALID_MODES.includes(v.mode as CaseMode) &&
     (v.lastOutput === undefined || typeof v.lastOutput === 'string') &&
     (v.lineByLine === undefined || typeof v.lineByLine === 'boolean') &&
+    (v.customDelimiter === undefined || typeof v.customDelimiter === 'string') &&
     (v.locale === undefined || typeof v.locale === 'string')
   );
 }
@@ -58,6 +59,7 @@ export const textCaseTool: Tool<TextCaseState> = {
     mode: 'lowercase',
     lastOutput: '',
     lineByLine: false,
+    customDelimiter: undefined,
     locale: undefined,
   },
   serialize: (state) =>
@@ -67,6 +69,7 @@ export const textCaseTool: Tool<TextCaseState> = {
         mode: state.mode,
         lastOutput: state.lastOutput,
         lineByLine: state.lineByLine,
+        customDelimiter: state.customDelimiter,
         locale: state.locale,
       },
       null,
@@ -82,6 +85,7 @@ export const textCaseTool: Tool<TextCaseState> = {
             mode: data.mode,
             lastOutput: data.lastOutput ?? '',
             lineByLine: data.lineByLine ?? false,
+            customDelimiter: data.customDelimiter,
             locale: data.locale,
           },
         };

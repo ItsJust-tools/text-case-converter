@@ -139,6 +139,21 @@ export function ToolSidebar({
         </label>
       </div>
 
+      {/* Custom delimiter */}
+      <div className="sidebar-section">
+        <h3>Custom Delimiter</h3>
+        <input
+          type="text"
+          className="delimiter-input"
+          value={state.customDelimiter ?? ''}
+          maxLength={12}
+          onChange={(e) => onChange({ customDelimiter: e.target.value || undefined })}
+          placeholder="e.g. - or / or space"
+          aria-label="Custom delimiter"
+          title="Replace word separators with a custom character. Type 'space', 'tab' or 'newline' for whitespace characters."
+        />
+      </div>
+
       {/* Locale selector */}
       <div className="sidebar-section">
         <h3>Locale</h3>

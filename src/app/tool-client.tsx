@@ -11,7 +11,7 @@ import {
   ALL_VALID_MODES,
 } from '@/tool';
 import { ToolShell, useTool, copyTextToClipboard } from '@itsjust/core';
-import { convertCaseLines } from '@/tool/lib/case-converter';
+import { convertCaseFull } from '@/tool/lib/case-converter';
 import type { TextCaseState } from '@/tool/types';
 
 /** Maximum number of undo/redo history entries to keep. */
@@ -174,7 +174,13 @@ export default function ToolClient() {
         if ('input' in patch || 'mode' in patch) {
           const trimmed = next.input.trim();
           if (trimmed) {
-            next.lastOutput = convertCaseLines(next.input, next.mode, next.lineByLine);
+            next.lastOutput = convertCaseFull(
+              next.input,
+              next.mode,
+              next.lineByLine,
+              next.locale,
+              next.customDelimiter
+            );
           }
         }
         return next;
@@ -200,12 +206,12 @@ export default function ToolClient() {
    * caches the result in lastOutput and shows a success toast.
    */
   const handleConvert = useCallback(() => {
-    const { input, mode, lineByLine } = tool.state.data;
+    const { input, mode, lineByLine, locale, customDelimiter } = tool.state.data;
     if (!input.trim()) {
       showToast('No text to convert', 'error');
       return;
     }
-    const output = convertCaseLines(input, mode, lineByLine);
+    const output = convertCaseFull(input, mode, lineByLine, locale, customDelimiter);
     setToolData((prev) => ({ ...prev, lastOutput: output }));
     showToast(`Converted to ${mode}`, 'success');
   }, [tool.state.data, setToolData, showToast]);
@@ -227,12 +233,12 @@ export default function ToolClient() {
    * to stay consistent with the real-time preview in the canvas.
    */
   const handleCopyOutput = useCallback(async () => {
-    const { input, mode, lineByLine } = tool.state.data;
+    const { input, mode, lineByLine, locale, customDelimiter } = tool.state.data;
     if (!input.trim()) {
       showToast('Nothing to copy', 'error');
       return;
     }
-    const output = convertCaseLines(input, mode, lineByLine);
+    const output = convertCaseFull(input, mode, lineByLine, locale, customDelimiter);
     setToolData((prev) => ({ ...prev, lastOutput: output }));
     const ok = await copyTextToClipboard(output);
     if (ok) {
@@ -252,6 +258,7 @@ export default function ToolClient() {
       mode: 'lowercase' as const,
       lastOutput: '',
       lineByLine: false,
+      customDelimiter: undefined,
     }));
     showToast('Reset', 'success');
   }, [setToolData, showToast]);

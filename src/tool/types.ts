@@ -31,6 +31,8 @@ export interface TextCaseState {
   lastOutput: string;
   /** When enabled, multi-line input is processed line-by-line instead of as a whole */
   lineByLine: boolean;
+  /** Custom word delimiter mode: replaces/derives word separators with a custom character */
+  customDelimiter?: string;
   /** Optional locale for case conversion (e.g. "tr" for Turkish, "de" for German) */
   locale?: string;
 }
